@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="barChart.css">
+	</head>
+	<body>
+<!--  <script src="js/barchart.js"></script>-->	
+
+	<script src="js/panel.js"></script>
+
+
+	<script language="javascript" type="text/javascript" >
+			var obj = document.body;
+			var objValues = [3,4,3,2,1,2,3,4,5,1];
+			
+			var panelObject1 = new ChartPanel('panelTest1',750,300,obj,"Pie Chart ",objValues);
+			panelObject1.create();
+
+			var panelObject2 = new TimerPanel('panel2',750,300,obj," Last 10 Records ",5);
+			panelObject2.create();
+
+			var panelObject3 = new TablePanel('panel3',750,300,obj," Last 101 Records ",10,'http://localhost:7001/Report/ReportUI/reports/pnoc');
+			panelObject3.create();
+			
+			var panelObject4 = new TablePanel('panel4',750,300,obj," Last 102 Records ",3,'http://localhost:7001/Report/ReportUI/reports/recentFiles');
+			panelObject4.create();
+			
+
+	</script>
+
+	
+	<script language="javascript" type="text/javascript" >
+/*	var myData = new Array(['Jan', 2], ['Feb', 1], ['Mar', 3], ['Apr', 6], ['May', 8], ['Jun', 10], ['Jul', 9], ['Aug', 8], ['Sep', 5], ['Oct', 6], ['Nov', 2], ['Dec', 4]);
+	for (var i=0;i<myData.length;i++) {
+		alert(myData[i]);
+		for (var j=0;j<myData[i].length;j++){
+			alert(myData[i] [j]);	
+		}
+	}*/
+	
+	/**	var objValues = [3,4,3,2,1,2,3,4,5,1];
+		var obj = document.getElementById("panelTest1");
+		var barObject = new barchart('in',400,200,objValues,obj);
+		barObject.create(); **/
+	</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Report Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Report Portal">
+  <meta name="author" content="Manikandan Dhandapani">
+  <link rel="stylesheet" href="css\table.css">
+  
+</head>
+<body>
+  <script language="javascript" type="text/javascript" >
+  var req=null;
+//This function initializes XHR
+function initXHR() {
+	if (req == null) {
+		if (navigator.appName.indexOf("Microsoft") > -1 ) {
+			   try{
+			      req=new ActiveXObject("Microsoft.XMLHTTP");
+			     }catch(e1){
+			      alert("failed to create XHR in IE");
+			     }
+			   }else{
+			       	try{
+			            req=new XMLHttpRequest();
+			           }catch(error){
+			            alert("failed to create XHR in FireFox");
+	           }
+        }
+		
+	}
+ }
+  
+function getReports() {
+	initXHR();
+	req.open("GET","http://localhost:7001/Report/ReportUI/reports/", true);
+	req.onreadystatechange=populateReports;
+	req.send(null);
+}  
+
+function populateReports() {
+	if(req.readyState==4){
+		   //response is OK
+		    if(req.status == 200){
+		    	var str="";
+				var response=req.responseXML;
+				var root=response.documentElement;
+				var reportList = document.getElementById("reportName");
+				for(i=0;i <root.childNodes.length;i++){
+			    	 var childNode = root.childNodes[i];
+			    	 for(j=0;j <childNode.childNodes.length;j++){
+			    		 var report = childNode.childNodes[j];
+			    		 var name = report.getAttribute("name");
+			    		 var url = report.getAttribute("url");
+			    		 reportList.options[j] = new Option(name, url);
+			    	 }
+			    	 
+				}
+		    }
+	}
+}
+  
+
+function getReport() {
+	initXHR();
+	var reportName = document.getElementById("reportName").value;
+	req.open("GET",reportName, true);
+	req.onreadystatechange=handleReport;
+	req.send(null);
+}
+
+
+
+function handleReport() {
+	if(req.readyState==4){
+		   //response is OK
+		    if(req.status == 200){
+		        var str="";
+				var response=req.responseXML;
+				var root=response.documentElement;
+				var tableObject = document.getElementById("reportTable");
+				for(k = tableObject.rows.length;k> 0; k--){
+					 tableObject.deleteRow(k-1);
+				}
+				
+				tableObject.deleteTHead();
+				
+				var header = tableObject.createTHead();
+				var headerRow;
+				for(i=0;i <root.childNodes.length;i++){
+			    	 var childNode = root.childNodes[i];
+			    	 for(j=0;j <childNode.childNodes.length;j++){
+			    		 var record = childNode.childNodes[j];
+			    		 var rowObject = tableObject.insertRow(j);
+			    		 if (j == 0) {
+			    			headerRow=header.insertRow(0);
+			    		 }
+			    		 for(k=0;k <record.childNodes.length;k++){
+				    		var element = record.childNodes[k];
+				    		var td = rowObject.insertCell(k);
+			  				if (element.childNodes.length > 0) {
+			  					td.innerHTML = element.childNodes[0].nodeValue;	
+			  				}
+			  				if ( j == 0) {
+			  					var headerCell = headerRow.insertCell(k);
+			  					headerCell.innerHTML = element.nodeName;
+			  				}
+			    		 }
+			    		 
+			    	 }
+			     }
+				req.abort();
+			}
+	}
+}
+getReports();
+
+</script>
+
+Select Report
+<select id="reportName">
+	<option value="pnoc"> PNOC </option>
+	<option value="expiringcontract"> EXPIRING CONTRACT </option>
+</select>
+<input type="button" onclick="getReport();" value="Refersh">
+<div id='reportDiv'>
+	<table id='reportTable'>
+		<tbody></tbody>
+	</table>
+</div>
+</body>
+</html>

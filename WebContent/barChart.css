@@ -32,22 +32,22 @@ label {
 /* 
 Generic Styling, for Desktops/Laptops 
 */
-table { 
+.tableContent { 
   width: 100%; 
   border-collapse: collapse; 
 }
 /* Zebra striping */
-table tbody tr:nth-of-type(odd) { 
+.tableContent tbody tr:nth-of-type(odd) { 
   background: #eee; 
 }
 
-thead { 
+.tableContent thead { 
   background: #333; 
   color: white; 
   font-weight: bold; 
 }
 
-td, th { 
+.tableContent td, th { 
   padding: 6px; 
   border: 1px solid #ccc; 
   text-align: left; 
@@ -63,20 +63,11 @@ td, th {
 	background:#eee;
 	overflow:hidden;
 	margin:0em 0;	
-	border-left:1px solid #000000;
-	border-bottom:1px solid #000000;
 }
 
-.rulesVert {
-	position:relative;
-	width:50px;
-	text-align:right;
-	font-size:9px;
-	line-height:11px;
-	color:#000000;	
-}
 
-.barchart li{
+
+.barchart .bar{
 	float:left;
 	background:#fc6;
 	margin:0;
@@ -88,20 +79,51 @@ td, th {
 	position:relative;
 }
 
-.barchart li span{
+.barchart .ruler{
+	float:left;
+	background:#999;
+	margin:0;
+	padding:0;
+	border:1px solid #eee;
+	border-right-width:0;
+	border-left:none;
+	border-bottom:none;
+	position:relative;
+	text-align:center;
+
+}
+.barchart .ruler table tr td{
+	text-align:right;	
+	color: white; 
+	font-weight:bold;
+	vertical-align:top;
+	border-top: 1px solid black;
+}
+
+.barchart .bar span{
 	position:absolute;
 	left:-99999px;
 	top:0;
 	text-align:center;
 	width:5em;
 	margin:0;
+	left:5px;
+	z-index:10;
+	top:5px;
+	background:transparent;
+	border:none;
+	background:#fff;
+	width:2em;
+	font-weight:bold;
+	-moz-border-radius:2px;
+	-webkit-border-radius:2px;	
 }
 
-.barchart li:hover{
+.barchart .bar:hover{
 	background:#693;
 }
 
-.barchart li:hover span{
+.barchart .bar:hover span{
 	left:5px;
 	z-index:10;
 	top:5px;

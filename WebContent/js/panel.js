@@ -89,12 +89,13 @@ return i;
 }
 
 
-function barchart(id,height,width,values,parent){
+function barchart(id,height,width,xValues,values,parent){
 	this.id = id;
 	this.width = width;
 	this.height = height;
 	this.values = values;
 	this.parent = parent;
+	this.xValues = xValues;
 
 	this.getMaxValue = function(){
 		return Math.max.apply( Math, values );
@@ -108,41 +109,74 @@ function barchart(id,height,width,values,parent){
 		div.style.height = this.height+"px";
 		div.style.width = this.width+"px";
 		this.createUL(div);
-		
+		//this.createRule(div);
 		this.parent.appendChild(div);
 	}
 	
 	
-	
-	this.createRule = function(parentObject){
-		var ruleValues = this.values.getUnique();
-		var len = ruleValues.length;
-		var ratio = this.height / this.getMaxValue();
-		for (var i =0;i< ruleValues.length;i++){
-			var ruleDiv = document.createElement("div");
-			ruleDiv.setAttribute('class' , 'rulesVert');
-			ruleDiv.style.bottom =  Math.round(ratio * ruleValues[i] ) + "px";
-			ruleDiv.innerHTML = ruleValues[i];
-			parentObject.appendChild(ruleDiv);
-		}
-	}
 
 	this.createUL = function(parentObject) {
 		var ul = document.createElement("ul");
 		ul.setAttribute('class' , 'barchart');
 		ul.setAttribute('style' , 'width:'+Math.round((this.width/values.length)) * values.length+'px;height:'+this.height+'px');
+	//	this.createLI(ul,-1);
 		for(var i =0;i<this.values.length;i++) {
 			this.createLI(ul,i);
 		}
-		this.createRule(ul);
+		//this.createRule(ul);
 		parentObject.appendChild(ul);
 	}
 
+	this.createRuleTmp = function(parentObject){
+		var ruleValues = this.values.getUnique();
+		var len = ruleValues.length;
+		var ruleTable = document.createElement("table");
+		var ratio = this.height / this.getMaxValue();
+		ruleValues.sort(function(a,b){return a-b});
+		for (var i =0;i< ruleValues.length;i++){
+			var ruleRow = ruleTable.insertRow(i);
+			alert("ruleValues[i]"+ruleValues[i]);
+			alert(this.height - Math.floor(((this.height/this.getMaxValue()) * ruleValues[ruleValues.length-i-1])));
+			ruleRow.style.height = (this.height - Math.floor(((this.height/this.getMaxValue()) * ruleValues[ruleValues.length-i-1]))) + "px";
+			var ruleCol  = ruleRow.insertCell(0);
+			ruleCol.innerHTML = ruleValues[ruleValues.length-i-1];
+		}
+		ruleTable.style.height = "100%";
+		ruleTable.style.width = "100%";
+		parentObject.appendChild(ruleTable);
+	}
+	
+	this.createRule = function(parentObject){
+		var ruleValues = this.values.getUnique();
+		var len = ruleValues.length;
+		var ruleTable = document.createElement("table");
+		var ratio = this.height / this.getMaxValue();
+		ruleValues.sort(function(a,b){return a-b});
+		for (var i =0;i< ruleValues.length;i++){
+			var ruleRow = ruleTable.insertRow(i);
+			var ruleCol  = ruleRow.insertCell(0);
+			ruleCol.innerHTML = ruleValues[ruleValues.length-i-1];
+		}
+		ruleTable.style.height = "100%";
+		ruleTable.style.width = "100%";
+		parentObject.appendChild(ruleTable);
+	}
+	
 	this.createLI = function(parentObject,i) {
 		var li = document.createElement("li");
-		li.setAttribute('style' , 'width:'+Math.round((this.width/values.length)-2)+'px;border-top-width:'+(this.height-this.getRatio(i))+'px;border-right-width:2px;height:'+this.getRatio(i)+'px');
 		var spanObj = document.createElement("span");
-		spanObj.innerHTML = this.values[i];
+		var ratio = this.getRatio(i);
+		if ( i == -1) {
+			// Ruler
+			li.setAttribute('class' ,'ruler');
+		//	this.createRule(li);
+			li.setAttribute('style' , 'width:'+Math.floor(this.width * 10/100)+'px;border-top-width:'+(this.height-ratio)+'px;border-right-width:2px;height:'+ratio+'px');
+		}else{
+			li.setAttribute('style' , 'width:'+(Math.floor( (this.width)/values.length) -2 )+'px;border-top-width:'+(this.height-ratio)+'px;border-right-width:2px;height:'+ratio+'px');
+			spanObj.innerHTML = this.values[i];
+			li.innerHTML = "<label style='vertical-align:top;'> " + this.xValues[i] + "</label>";
+			li.setAttribute('class' ,'bar');
+		}
 		li.appendChild(spanObj);
 		parentObject.appendChild(li);
 	}
@@ -150,7 +184,12 @@ function barchart(id,height,width,values,parent){
 	
 	
 	this.getRatio = function(i){
-		return  Math.round(((this.height/this.getMaxValue()) * this.values[i]));
+		if ( i == -1) {
+			return  Math.floor(((this.height/this.getMaxValue()) * this.getMaxValue()));
+		}else{
+			return  Math.floor(((this.height/this.getMaxValue()) * this.values[i]));
+		}
+		
 	}
 }
 
@@ -202,16 +241,6 @@ function panel(id,width,height,parent,title){
 }
 
 
-function ChartPanel(id,width,height,parent,title,chartValues){
-	panel.call(this, id,width,height,parent,title);
-	this.chartValues = chartValues;
-	
-	this.createContent = function () {
-		new barchart(id+"_barChart",(this.height * 50/100),this.width,this.chartValues,this.elementObj).create();
-	};
-}
-
-extend(panel, ChartPanel);
 
 
 function TimerPanel (id,width,height,parent,title,interval){
@@ -252,6 +281,30 @@ function TimerPanel (id,width,height,parent,title,interval){
 
 extend(panel, TimerPanel);
 
+function ChartPanel(id,width,height,parent,title,interval,chartValues){
+	TimerPanel.call(this, id,width,height,parent,title,interval);
+	this.xData = [];
+	this.yData = [];
+
+	chartValues.sort(function (a, b) {
+	    return a.name > b.name;
+	});
+	
+	for( var i = 0; i < chartValues.length; i++ ){
+		this.xData.push(chartValues[i].name);
+		this.yData.push(chartValues[i].value);
+	}
+	
+	this.yData = this.yData.sort(function(a,b){return b-a});
+		
+	this.createContent = function () {
+		new barchart(id+"_barChart",(this.height * 85/100),this.width,this.xData,this.yData,this.elementObj).create();
+	};
+}
+
+extend(TimerPanel, ChartPanel);
+
+
 //TimerPanel.prototype = new panel();
 
 function TablePanel (id,width,height,parent,title,interval,url){
@@ -264,6 +317,7 @@ function TablePanel (id,width,height,parent,title,interval,url){
 			tableDiv.setAttribute('class' , 'tableDiv');
 			var tableObj = document.createElement("table");
 			tableObj.setAttribute("id",id+"_table");
+			tableObj.setAttribute('class' , 'tableContent');			
 			tableDiv.appendChild (tableObj);			 
 			this.elementObj.appendChild (tableDiv);
 		};

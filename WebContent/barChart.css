@@ -14,6 +14,23 @@
 	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,.8);
 }
 
+.Barfooter{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+ 	font-size:10pt;
+	position:absolute;
+	left:0;
+	background:#999;
+}
+
+.Barfooter table tr td{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+ 	font-size:10pt;
+}
+
 .panel .footer{
  	font-family: Calibri;
  	font-weight:bold;
@@ -99,6 +116,7 @@ Generic Styling, for Desktops/Laptops
 	vertical-align:top;
 	border-top: 1px solid black;
 }
+
 
 .barchart .bar span{
 	position:absolute;

@@ -34,7 +34,7 @@ public enum DataManager {
 
 	private static final Logger logger = Logger.getLogger(DataManager.class);
 	
-	private static final String DEFAULT_DATASOURCE = "jdbc/BuyerGadget";
+	private static final String DEFAULT_DATASOURCE = "jdbc/dashboard";
 	
 	private static final 	String EMPTY_STRING = "";
 	

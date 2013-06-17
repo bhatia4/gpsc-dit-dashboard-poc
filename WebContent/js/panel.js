@@ -30,9 +30,8 @@ Array.prototype.getUnique = function(){
 }
 
 
-var req=null;
 //This function initializes XHR
-function initXHR() {
+function initXHR(req) {
 	if (req == null) {
 		if (navigator.appName.indexOf("Microsoft") > -1 ) {
 			   try{
@@ -49,6 +48,7 @@ function initXHR() {
         }
 		
 	}
+	return req;
  }
 
 function getTime() {
@@ -102,6 +102,17 @@ function barchart(id,height,width,xValues,values,parent){
 	}
 	
 
+	
+	this.createBarFooter = function(innerStr,parent) {
+		var footdiv = document.createElement("div");
+		footdiv.setAttribute('class' , 'Barfooter');
+		footdiv.style.width = this.width + "px";			
+		footdiv.style.height = Math.floor(this.height * 15/100) + "px";
+		//createLabel(footdiv, innerStr, this.id+"_barfootLabel");
+		footdiv.innerHTML = innerStr;
+		parent.appendChild(footdiv)
+		return footdiv;
+	}
 
 	this.create = function(){
 		var div = document.createElement("div");
@@ -109,7 +120,13 @@ function barchart(id,height,width,xValues,values,parent){
 		div.style.height = this.height+"px";
 		div.style.width = this.width+"px";
 		this.createUL(div);
-		//this.createRule(div);
+		var tableStr = '<table><tr>';
+		for(var i =0;i<this.values.length;i++) {
+			tableStr =  tableStr + '<td  width='+(Math.floor( (this.width)/values.length) -2 )+'px'+'>'+ this.xValues[i]  + '</td>';
+			'width:'+(Math.floor( (this.width)/values.length) -2 )+'px';
+		}
+		tableStr =  tableStr + '</tr></table>';
+		this.createBarFooter(tableStr,div);
 		this.parent.appendChild(div);
 	}
 	
@@ -118,32 +135,15 @@ function barchart(id,height,width,xValues,values,parent){
 	this.createUL = function(parentObject) {
 		var ul = document.createElement("ul");
 		ul.setAttribute('class' , 'barchart');
-		ul.setAttribute('style' , 'width:'+Math.round((this.width/values.length)) * values.length+'px;height:'+this.height+'px');
-	//	this.createLI(ul,-1);
+		ul.setAttribute('style' , 'width:'+Math.round((this.width/values.length)) * values.length+'px;height:'+this.getChartHeight()+'px');
 		for(var i =0;i<this.values.length;i++) {
 			this.createLI(ul,i);
 		}
-		//this.createRule(ul);
 		parentObject.appendChild(ul);
 	}
 
-	this.createRuleTmp = function(parentObject){
-		var ruleValues = this.values.getUnique();
-		var len = ruleValues.length;
-		var ruleTable = document.createElement("table");
-		var ratio = this.height / this.getMaxValue();
-		ruleValues.sort(function(a,b){return a-b});
-		for (var i =0;i< ruleValues.length;i++){
-			var ruleRow = ruleTable.insertRow(i);
-			alert("ruleValues[i]"+ruleValues[i]);
-			alert(this.height - Math.floor(((this.height/this.getMaxValue()) * ruleValues[ruleValues.length-i-1])));
-			ruleRow.style.height = (this.height - Math.floor(((this.height/this.getMaxValue()) * ruleValues[ruleValues.length-i-1]))) + "px";
-			var ruleCol  = ruleRow.insertCell(0);
-			ruleCol.innerHTML = ruleValues[ruleValues.length-i-1];
-		}
-		ruleTable.style.height = "100%";
-		ruleTable.style.width = "100%";
-		parentObject.appendChild(ruleTable);
+	this.getChartHeight = function() {
+		return Math.floor(this.height * 85 / 100);
 	}
 	
 	this.createRule = function(parentObject){
@@ -162,21 +162,15 @@ function barchart(id,height,width,xValues,values,parent){
 		parentObject.appendChild(ruleTable);
 	}
 	
+
+	
 	this.createLI = function(parentObject,i) {
 		var li = document.createElement("li");
 		var spanObj = document.createElement("span");
 		var ratio = this.getRatio(i);
-		if ( i == -1) {
-			// Ruler
-			li.setAttribute('class' ,'ruler');
-		//	this.createRule(li);
-			li.setAttribute('style' , 'width:'+Math.floor(this.width * 10/100)+'px;border-top-width:'+(this.height-ratio)+'px;border-right-width:2px;height:'+ratio+'px');
-		}else{
-			li.setAttribute('style' , 'width:'+(Math.floor( (this.width)/values.length) -2 )+'px;border-top-width:'+(this.height-ratio)+'px;border-right-width:2px;height:'+ratio+'px');
-			spanObj.innerHTML = this.values[i];
-			li.innerHTML = "<label style='vertical-align:top;'> " + this.xValues[i] + "</label>";
-			li.setAttribute('class' ,'bar');
-		}
+		li.setAttribute('style' , 'width:'+(Math.floor( (this.width)/values.length) -2 )+'px;border-top-width:'+(this.getChartHeight()-ratio)+'px;border-right-width:2px;height:'+ratio+'px');
+		spanObj.innerHTML = this.values[i];
+		li.setAttribute('class' ,'bar');
 		li.appendChild(spanObj);
 		parentObject.appendChild(li);
 	}
@@ -184,12 +178,7 @@ function barchart(id,height,width,xValues,values,parent){
 	
 	
 	this.getRatio = function(i){
-		if ( i == -1) {
-			return  Math.floor(((this.height/this.getMaxValue()) * this.getMaxValue()));
-		}else{
-			return  Math.floor(((this.height/this.getMaxValue()) * this.values[i]));
-		}
-		
+			return  Math.floor(((this.getChartHeight()/this.getMaxValue()) * this.values[i]));
 	}
 }
 
@@ -248,6 +237,7 @@ function TimerPanel (id,width,height,parent,title,interval){
 		this.interValTime = interval;
 		this.invervalId = null;
 		this.isRefresh = false;
+		this.requestObject = null;
 
 		this.startRefresh = function() {
 			var obj = this;
@@ -276,17 +266,44 @@ function TimerPanel (id,width,height,parent,title,interval){
 		
 		this.refresh = function(){
 			document.getElementById( this.id+"_footLabel").innerText = this.title + '.. Last Refresh Updated..' +getTime();
+			if (this.url){
+				this.getReport();
+			}
+			
 		}
+		
+		this.getReport = function(){
+			this.requestObject = initXHR(this.requestObject);
+			var obj = this;
+			var reportName = obj.url;
+			this.requestObject.open("GET",reportName, true);
+			this.requestObject.onreadystatechange= function() { 
+				if(obj.requestObject.readyState==4){
+					   //response is OK
+					if(obj.requestObject.status == 200){
+						obj.buildReport();
+						obj.requestObject.abort();
+					}
+				}
+
+			};
+			this.requestObject.send(null);
+		}
+		
+		this.buildReport = function() {			
+		}
+		
 }
 
 extend(panel, TimerPanel);
 
-function ChartPanel(id,width,height,parent,title,interval,chartValues){
+function ChartPanel(id,width,height,parent,title,interval,url){
 	TimerPanel.call(this, id,width,height,parent,title,interval);
 	this.xData = [];
 	this.yData = [];
+	this.url = url;
 
-	chartValues.sort(function (a, b) {
+/*	chartValues.sort(function (a, b) {
 	    return a.name > b.name;
 	});
 	
@@ -294,12 +311,38 @@ function ChartPanel(id,width,height,parent,title,interval,chartValues){
 		this.xData.push(chartValues[i].name);
 		this.yData.push(chartValues[i].value);
 	}
-	
 	this.yData = this.yData.sort(function(a,b){return b-a});
+	
 		
 	this.createContent = function () {
 		new barchart(id+"_barChart",(this.height * 85/100),this.width,this.xData,this.yData,this.elementObj).create();
 	};
+	
+	*/
+	
+
+	
+	this.buildReport = function () {
+		this.xData = [];
+		this.yData = [];		
+		var response=this.requestObject.responseXML;
+		var root=response.documentElement;
+		for(i=0;i <root.childNodes.length;i++){
+	    	 var childNode = root.childNodes[i];
+	    	 for(j=0;j <childNode.childNodes.length;j++){
+	    		 var record = childNode.childNodes[j];			
+	    		 this.xData.push( record.childNodes[0].childNodes[0].nodeValue);
+				 this.yData.push(record.childNodes[1].childNodes[0].nodeValue);
+	    	 }
+		}
+		var div = document.getElementById(id+"_barChart");
+		if (div){
+			this.elementObj.removeChild(div);
+		}
+		new barchart(id+"_barChart",Math.floor(this.height * 85/100),this.width,this.xData,this.yData,this.elementObj).create();
+	}
+	
+	
 }
 
 extend(TimerPanel, ChartPanel);
@@ -322,12 +365,9 @@ function TablePanel (id,width,height,parent,title,interval,url){
 			this.elementObj.appendChild (tableDiv);
 		};
 				
-		this.refresh = function(){
-					document.getElementById( this.id+"_footLabel").innerText = this.title + '.. Last Refresh Updated..' +getTime();
-					this.getReport();
-		}
+	
 		
-		this.buildTableReport = function() {
+		this.buildReport = function(req) {
 			var tableObject = document.getElementById(id+"_table");
 			for(k = tableObject.rows.length;k> 0; k--){
 				 tableObject.deleteRow(k-1);
@@ -335,9 +375,8 @@ function TablePanel (id,width,height,parent,title,interval,url){
 			tableObject.deleteTHead();
 			var header = tableObject.createTHead();
 			var headerRow;
-			var response=req.responseXML;
+			var response=this.requestObject.responseXML;
 			var root=response.documentElement;
-			
 			for(i=0;i <root.childNodes.length;i++){
 		    	 var childNode = root.childNodes[i];
 		    	 for(j=0;j <childNode.childNodes.length;j++){
@@ -363,23 +402,6 @@ function TablePanel (id,width,height,parent,title,interval,url){
 	    
 		}
 		
-		this.getReport = function(){
-			initXHR();
-			var obj = this;
-			var reportName = obj.url;
-			req.open("GET",reportName, true);
-			req.onreadystatechange= function() { 
-				if(req.readyState==4){
-					   //response is OK
-					if(req.status == 200){
-						obj.buildTableReport();
-						req.abort();
-					}
-				}
-
-			};
-			req.send(null);
-		}
 		
 }
 

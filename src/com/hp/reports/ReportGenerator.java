@@ -31,6 +31,9 @@ public class ReportGenerator {
 		baseQuery.put("pnoc" , "select rownum recordnum,keyid,buyer_region,smt,buyer_name,buyer_code,release_status,model_year,part_number,part_Description,reason_code,comments,product_line from pnoc" );
 		baseQuery.put("expiringcontract" , "select rownum recordnum,KEYID,SMT,CREATIVTY_TEAM_DSC,CNTRCT_NBR,CNTRCT_LI_NBR,LGL_BSNS_ENT_DSC,PART_NBR,PRT_DSC from expiring_contract" );
 		baseQuery.put("recentFiles" , "select rownum recordnum,buyer_region,smt,buyer_name,buyer_code,product_line from pnoc" );
+		baseQuery.put("fileList" , "select segment_name,plant,region,file_process_status FROM dashboard.control_table" );
+		baseQuery.put("fileListChart" , "select segment_name,count(*) as count FROM dashboard.control_table group by segment_name order by count(*) desc" );
+		baseQuery.put("fileStatusChart" , "select file_process_status as status , count(*) as count from control_table group by file_process_status order by count(*) desc" );
 		
 	}
 	
@@ -68,7 +71,7 @@ public class ReportGenerator {
 		 
 		 DataManager dataManager = DataManager.INSTANCE;
 		try {
-			ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(id), System.currentTimeMillis()+"", false,pageNum);
+			ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(id), System.currentTimeMillis()+"", false,-1);
 			String[] headers = dataManager.getHeaders(baseQuery.get(id), System.currentTimeMillis()+"", false);
 			ReportGenerator generator = new ReportGenerator();
 			int[] keyPosition = {0};
@@ -97,126 +100,6 @@ public class ReportGenerator {
 				dataBuffer.append("<").append(headers[i]).append(">").append(removeNullEmpty(data[i])).append("</").append(headers[i]).append(">");
 			}
 			urlBuffer.append(BASEURL).append(entityName).append("/");
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			for (int i = 0; i < keyPosition.length; i++) {
 				urlBuffer.append(removeNullEmpty(data[i])).append("~$~");
 			}
@@ -284,7 +167,7 @@ public class ReportGenerator {
 			DataManager dataManager = DataManager.INSTANCE;
 			String query = "expiringcontract";
 			try {
-				ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(query), System.currentTimeMillis()+"", false,2);
+				ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(query), System.currentTimeMillis()+"", false,-1);
 				String[] headers = dataManager.getHeaders(baseQuery.get(query), System.currentTimeMillis()+"", false);
 				ReportGenerator generator = new ReportGenerator();
 				int[] keyPosition = {0};

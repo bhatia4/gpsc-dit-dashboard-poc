@@ -160,4 +160,28 @@ Generic Styling, for Desktops/Laptops
 	padding:5px 5px;
 }
 
+.pieChart {
+	font-weight:bold;
+	position:relative;
+	margin:0;
+	padding: 0,30;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	margin:0em 0;	
+}
+
+.pieChart .legend{
+	font-weight:bold;
+	position:relative;
+	display:inline-block;
+	margin:0;
+	padding: 0,30;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	margin:0em 0;	
+}
+
+
  

@@ -30,6 +30,18 @@ Array.prototype.getUnique = function(){
 }
 
 
+getMaxValue = function(values){
+	return Math.max.apply( Math, values );
+}
+
+getSum = function(values) {
+	var sum = 0;
+	for ( var int = 0; int < values.length; int++) {
+		sum = sum + parseInt(values[int]);
+	}
+	return sum;
+}
+
 //This function initializes XHR
 function initXHR(req) {
 	if (req == null) {
@@ -98,7 +110,7 @@ function barchart(id,height,width,xValues,values,parent){
 	this.xValues = xValues;
 
 	this.getMaxValue = function(){
-		return Math.max.apply( Math, values );
+		return getMaxValue(values);
 	}
 	
 
@@ -269,7 +281,6 @@ function TimerPanel (id,width,height,parent,title,interval){
 			if (this.url){
 				this.getReport();
 			}
-			
 		}
 		
 		this.getReport = function(){
@@ -303,25 +314,7 @@ function ChartPanel(id,width,height,parent,title,interval,url){
 	this.yData = [];
 	this.url = url;
 
-/*	chartValues.sort(function (a, b) {
-	    return a.name > b.name;
-	});
-	
-	for( var i = 0; i < chartValues.length; i++ ){
-		this.xData.push(chartValues[i].name);
-		this.yData.push(chartValues[i].value);
-	}
-	this.yData = this.yData.sort(function(a,b){return b-a});
-	
-		
-	this.createContent = function () {
-		new barchart(id+"_barChart",(this.height * 85/100),this.width,this.xData,this.yData,this.elementObj).create();
-	};
-	
-	*/
-	
 
-	
 	this.buildReport = function () {
 		this.xData = [];
 		this.yData = [];		
@@ -346,6 +339,82 @@ function ChartPanel(id,width,height,parent,title,interval,url){
 }
 
 extend(TimerPanel, ChartPanel);
+
+
+function PieChartPanel(id,width,height,parent,title,interval,url){
+	TimerPanel.call(this, id,width,height,parent,title,interval);
+	this.xData = [];
+	this.yData = [];
+	this.url = url;
+
+	
+	this.createContent = function () {
+		var canvasElementDiv = document.createElement("div");
+		canvasElementDiv.id = this.id+"piechartDiv";
+		canvasElementDiv.style.height = Math.floor(this.height * 85/100);
+		canvasElementDiv.style.width = this.width;
+		canvasElementDiv.setAttribute('class' , 'pieChart');
+		this.elementObj.appendChild(canvasElementDiv);
+		
+	};
+	
+	this.buildReport = function () {
+		this.xData = [];
+		this.yData = [];		
+		var response=this.requestObject.responseXML;
+		var root=response.documentElement;
+		for(i=0;i <root.childNodes.length;i++){
+	    	 var childNode = root.childNodes[i];
+	    	 for(j=0;j <childNode.childNodes.length;j++){
+	    		 var record = childNode.childNodes[j];			
+	    		 this.xData.push( record.childNodes[0].childNodes[0].nodeValue );
+				 this.yData.push(record.childNodes[1].childNodes[0].nodeValue);
+	    	 }
+		}
+		
+		var sum = getSum(this.yData);
+		for ( var int = 0; int < this.yData.length; int++) {
+			this.yData[int] =  Math.floor(( parseInt(this.yData[int]) / sum) * 360) ;
+		}
+		
+		var canvasElementDiv = document.getElementById(this.id+"piechartDiv");
+		var canvasElement = document.getElementById(this.id+"piechart");
+		if (canvasElement){
+			canvasElementDiv.removeChild(canvasElement);
+		}
+		canvasElement = document.createElement('canvas');
+		canvasElement.height = Math.floor(this.height * 75/100);
+		canvasElement.width = Math.floor(this.height * 75/100);
+		canvasElement.id = this.id+"piechart";
+		canvasElementDiv.appendChild(canvasElement);			
+		var pieChart = new PieChart(this.id+"piechart", 
+				{
+					data: this.yData,
+					labels: this.xData
+				}
+			);
+		pieChart.draw();
+		
+		var ledgendDiv = document.getElementById(this.id+"ledgendDiv");
+		if (ledgendDiv){
+			canvasElementDiv.removeChild(ledgendDiv);
+		}
+		ledgendDiv = document.createElement("div");
+		ledgendDiv.id = this.id+"ledgendDiv";
+		ledgendDiv.style.height = Math.floor(this.height * 50/100);
+		ledgendDiv.style.width = Math.floor(this.width * 30/100);
+		ledgendDiv.setAttribute('class' , 'legend');
+		var ledgendStr = '<ul>';
+		for ( var j = 0; j < this.xData.length; j++) {
+			ledgendStr =  ledgendStr + '<li>'+this.xData[j]+'</li>';
+		}
+		 ledgendStr = ledgendStr + '</ul>';
+		ledgendDiv.innerHTML = ledgendStr;
+		canvasElementDiv.appendChild(ledgendDiv);
+	}
+}
+
+extend(TimerPanel, PieChartPanel);
 
 
 //TimerPanel.prototype = new panel();
@@ -406,3 +475,98 @@ function TablePanel (id,width,height,parent,title,interval,url){
 }
 
 extend(TimerPanel, TablePanel);
+
+
+
+//
+//PieChart
+//
+//CreativeCommons Attribution-ShareAlike
+//http://creativecommons.org/licenses/by-sa/2.5/
+//
+//2011 Elisabeth Robson
+//
+//expects an object with one or more of these:
+//includeLabels - boolean, determines whether to include the specified labels
+//	when drawing the chart. If false, the labels are stored in the pie chart
+//	but not drawn by default. You can draw a label for a segment with 
+//	the drawLabel method.
+//data - array of data items. Should be positive integer adding up to 360.
+//labels - array of (string) labels. Should have at least as many items as data.
+//colors - two D array of (string) colors. First is used to draw, second to draw
+//	a selected segment.
+//
+function PieChart(id, o) {
+	this.includeLabels = false;
+	if (o.includeLabels == undefined) {
+		this.includeLabels = false;
+	}
+	else {
+		this.includeLabels = o.includeLabels;
+	}
+	this.data = o.data ? o.data : [30, 70, 45, 65, 20, 130]; // in degrees
+	this.labels = o.labels ? o.labels : ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
+	this.colors = o.colors ? o.colors : [
+     	["#0092B9", "#1d8e04"], // green
+     	["#86AD00", "#9edd08"], // yellow green
+     	["#F2B705", "#faf406"], // yellow
+     	["#D97904", "#f2700f"], // orange
+     	["#BC3603", "#ea2507"], // red
+     	["#e2bcbd", "#9e2126"]  // purple
+ 	];
+
+	this.canvas = document.getElementById(id);
+}
+
+PieChart.prototype = {
+
+	draw: function() {
+		var self = this;
+		var context = this.canvas.getContext("2d");
+		for (var i = 0; i < this.data.length; i++) {
+			this.drawSegment(this.canvas, context, i, this.data[i], false, this.includeLabels);
+		}
+	},
+
+	drawSegment: function(canvas, context, i, size, isSelected, includeLabels) {
+		var self = this;
+		context.save();
+		var centerX = Math.floor(canvas.width / 2);
+		var centerY = Math.floor(canvas.height / 2);
+		radius = Math.floor(canvas.width / 2);
+
+		var startingAngle = self.degreesToRadians(self.sumTo(self.data, i));
+		var arcSize = self.degreesToRadians(size);
+		var endingAngle = startingAngle + arcSize;
+
+		context.beginPath();
+		context.moveTo(centerX, centerY);
+		context.arc(centerX, centerY, radius, startingAngle, endingAngle, false);
+		context.closePath();
+
+		isSelected ? 
+			context.fillStyle = self.colors[i][1] :
+			context.fillStyle = self.colors[i][0];
+
+		context.fill();
+		context.restore();
+
+	},
+
+	
+
+	// helper functions
+	degreesToRadians: function(degrees) {
+		return (degrees * Math.PI)/180;
+	},
+
+	sumTo: function(a, i) {
+		var sum = 0;
+		for (var j = 0; j < i; j++) {
+			sum += a[j];
+		}
+		return sum;
+	}
+
+
+}

@@ -1,0 +1,187 @@
+.panel{
+	font-weight:bold;
+	position:relative;
+	margin:0;
+	padding:0;
+	display:inline-block;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	border:1px solid #eee;
+	margin:2em 10;
+	border-radius:25px;
+	-moz-box-shadow:4px 4px 10px rgba(33,33,33,.8);
+	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,.8);
+}
+
+.Barfooter{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+ 	font-size:10pt;
+	position:absolute;
+	left:0;
+	background:#999;
+}
+
+.Barfooter table tr td{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+ 	font-size:10pt;
+}
+
+.panel .footer{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+	position:absolute;
+	height:2em;
+	bottom:0;
+	left:0;
+	background:#999;
+}
+
+label {	
+	padding-left:20px;
+}
+
+/* 
+Generic Styling, for Desktops/Laptops 
+*/
+.tableContent { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+/* Zebra striping */
+.tableContent tbody tr:nth-of-type(odd) { 
+  background: #eee; 
+}
+
+.tableContent thead { 
+  background: #333; 
+  color: white; 
+  font-weight: bold; 
+}
+
+.tableContent td, th { 
+  padding: 6px; 
+  border: 1px solid #ccc; 
+  text-align: left; 
+}
+
+
+.barchart{
+	font-weight:bold;
+	position:relative;
+	margin:0;
+	padding:0;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	margin:0em 0;	
+}
+
+
+
+.barchart .bar{
+	float:left;
+	background:#fc6;
+	margin:0;
+	padding:0;
+	border:1px solid #eee;
+	border-right-width:0;
+	border-left:none;
+	border-bottom:none;
+	position:relative;
+}
+
+.barchart .ruler{
+	float:left;
+	background:#999;
+	margin:0;
+	padding:0;
+	border:1px solid #eee;
+	border-right-width:0;
+	border-left:none;
+	border-bottom:none;
+	position:relative;
+	text-align:center;
+
+}
+.barchart .ruler table tr td{
+	text-align:right;	
+	color: white; 
+	font-weight:bold;
+	vertical-align:top;
+	border-top: 1px solid black;
+}
+
+
+.barchart .bar span{
+	position:absolute;
+	left:-99999px;
+	top:0;
+	text-align:center;
+	width:5em;
+	margin:0;
+	left:5px;
+	z-index:10;
+	top:5px;
+	background:transparent;
+	border:none;
+	background:#fff;
+	width:2em;
+	font-weight:bold;
+	-moz-border-radius:2px;
+	-webkit-border-radius:2px;	
+}
+
+.barchart .bar:hover{
+	background:#693;
+}
+
+.barchart .bar:hover span{
+	left:5px;
+	z-index:10;
+	top:5px;
+	background:transparent;
+	border:none;
+	background:#fff;
+	width:2em;
+	font-weight:bold;
+	-moz-border-radius:2px;
+	-webkit-border-radius:2px;	
+}
+
+.tableDiv{
+	overflow-x: scroll;
+	height:85%;
+	padding:5px 5px;
+}
+
+.pieChart {
+	font-weight:bold;
+	position:relative;
+	margin:0;
+	padding: 0,30;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	margin:0em 0;	
+}
+
+.pieChart .legend{
+	font-weight:bold;
+	position:relative;
+	display:inline-block;
+	margin:0;
+	padding: 0,30;
+	list-style:none;
+	background:#eee;
+	overflow:hidden;
+	margin:0em 0;	
+}
+
+
+ 

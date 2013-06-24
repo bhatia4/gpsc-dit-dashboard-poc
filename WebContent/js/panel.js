@@ -1,6 +1,6 @@
 /*
  * Author : Manikandan Dhandapani
- * 
+ *
  */
 
 // This is a constructor that is used to setup inheritance without
@@ -58,7 +58,7 @@ function initXHR(req) {
 			            alert("failed to create XHR in FireFox");
 	           }
         }
-		
+
 	}
 	return req;
  }
@@ -112,13 +112,13 @@ function barchart(id,height,width,xValues,values,parent){
 	this.getMaxValue = function(){
 		return getMaxValue(values);
 	}
-	
 
-	
+
+
 	this.createBarFooter = function(innerStr,parent) {
 		var footdiv = document.createElement("div");
 		footdiv.setAttribute('class' , 'Barfooter');
-		footdiv.style.width = this.width + "px";			
+		footdiv.style.width = this.width + "px";
 		footdiv.style.height = Math.floor(this.height * 15/100) + "px";
 		//createLabel(footdiv, innerStr, this.id+"_barfootLabel");
 		footdiv.innerHTML = innerStr;
@@ -141,8 +141,8 @@ function barchart(id,height,width,xValues,values,parent){
 		this.createBarFooter(tableStr,div);
 		this.parent.appendChild(div);
 	}
-	
-	
+
+
 
 	this.createUL = function(parentObject) {
 		var ul = document.createElement("ul");
@@ -157,7 +157,7 @@ function barchart(id,height,width,xValues,values,parent){
 	this.getChartHeight = function() {
 		return Math.floor(this.height * 85 / 100);
 	}
-	
+
 	this.createRule = function(parentObject){
 		var ruleValues = this.values.getUnique();
 		var len = ruleValues.length;
@@ -173,9 +173,9 @@ function barchart(id,height,width,xValues,values,parent){
 		ruleTable.style.width = "100%";
 		parentObject.appendChild(ruleTable);
 	}
-	
 
-	
+
+
 	this.createLI = function(parentObject,i) {
 		var li = document.createElement("li");
 		var spanObj = document.createElement("span");
@@ -187,8 +187,8 @@ function barchart(id,height,width,xValues,values,parent){
 		parentObject.appendChild(li);
 	}
 
-	
-	
+
+
 	this.getRatio = function(i){
 			return  Math.floor(((this.getChartHeight()/this.getMaxValue()) * this.values[i]));
 	}
@@ -203,7 +203,7 @@ function panel(id,width,height,parent,title){
 		this.elementObj = null;
 		this.footerObj = null;
 		var className = 'panel'
-		
+
 
 		this.createMain = function(){
 			var div = document.createElement("div");
@@ -213,22 +213,22 @@ function panel(id,width,height,parent,title){
 			div.style.width = this.width+"px";
 			this.elementObj = div;
 			this.parent.appendChild(div);
-		}	
-			
+		}
+
 		this.create = function(){
 			/** Main Div creation **/
 			this.createMain();
 			/** Call ContentFunction to create appropriate Content **/
 			this.createContent();
-			
+
 			/** Create footer Div **/
 			this.createFooter(this.title );
 			this.addContent();
 		}
-		
+
 		this.createContent = function () {};
 		this.addContent = function () {};
-		
+
 		this.createFooter = function(innerStr) {
 			var footdiv = document.createElement("div");
 			footdiv.setAttribute('class' , 'footer');
@@ -256,11 +256,11 @@ function TimerPanel (id,width,height,parent,title,interval){
 			obj.refresh();
 			return setInterval(function() { return obj.refresh(); }, (this.interValTime * 1000));
 		}
-		
+
 		this.addContent = function () {
 			var imgObj = createImage(this.footerObj,this.id+"_ref_img", "img/refresh_button.png", "100%");
 			var self = this;
-			 
+
 			 imgObj.addEventListener("click", function(e) {
 				 if (self.isRefresh){
 					 document.getElementById(self.id+"_ref_img").src = "img/refresh_button.png";
@@ -271,24 +271,24 @@ function TimerPanel (id,width,height,parent,title,interval){
 					 self.invervalId = self.startRefresh();
 					 self.isRefresh = true;
 				 }
-				 
+
 			 },false);
 		};
-		
-		
+
+
 		this.refresh = function(){
 			document.getElementById( this.id+"_footLabel").innerText = this.title + '.. Last Refresh Updated..' +getTime();
 			if (this.url){
 				this.getReport();
 			}
 		}
-		
+
 		this.getReport = function(){
 			this.requestObject = initXHR(this.requestObject);
 			var obj = this;
 			var reportName = obj.url;
 			this.requestObject.open("GET",reportName, true);
-			this.requestObject.onreadystatechange= function() { 
+			this.requestObject.onreadystatechange= function() {
 				if(obj.requestObject.readyState==4){
 					   //response is OK
 					if(obj.requestObject.status == 200){
@@ -300,10 +300,10 @@ function TimerPanel (id,width,height,parent,title,interval){
 			};
 			this.requestObject.send(null);
 		}
-		
-		this.buildReport = function() {			
+
+		this.buildReport = function() {
 		}
-		
+
 }
 
 extend(panel, TimerPanel);
@@ -317,13 +317,13 @@ function ChartPanel(id,width,height,parent,title,interval,url){
 
 	this.buildReport = function () {
 		this.xData = [];
-		this.yData = [];		
+		this.yData = [];
 		var response=this.requestObject.responseXML;
 		var root=response.documentElement;
 		for(i=0;i <root.childNodes.length;i++){
 	    	 var childNode = root.childNodes[i];
 	    	 for(j=0;j <childNode.childNodes.length;j++){
-	    		 var record = childNode.childNodes[j];			
+	    		 var record = childNode.childNodes[j];
 	    		 this.xData.push( record.childNodes[0].childNodes[0].nodeValue);
 				 this.yData.push(record.childNodes[1].childNodes[0].nodeValue);
 	    	 }
@@ -334,8 +334,8 @@ function ChartPanel(id,width,height,parent,title,interval,url){
 		}
 		new barchart(id+"_barChart",Math.floor(this.height * 85/100),this.width,this.xData,this.yData,this.elementObj).create();
 	}
-	
-	
+
+
 }
 
 extend(TimerPanel, ChartPanel);
@@ -347,7 +347,7 @@ function PieChartPanel(id,width,height,parent,title,interval,url){
 	this.yData = [];
 	this.url = url;
 
-	
+
 	this.createContent = function () {
 		var canvasElementDiv = document.createElement("div");
 		canvasElementDiv.id = this.id+"piechartDiv";
@@ -355,28 +355,28 @@ function PieChartPanel(id,width,height,parent,title,interval,url){
 		canvasElementDiv.style.width = this.width;
 		canvasElementDiv.setAttribute('class' , 'pieChart');
 		this.elementObj.appendChild(canvasElementDiv);
-		
+
 	};
-	
+
 	this.buildReport = function () {
 		this.xData = [];
-		this.yData = [];		
+		this.yData = [];
 		var response=this.requestObject.responseXML;
 		var root=response.documentElement;
 		for(i=0;i <root.childNodes.length;i++){
 	    	 var childNode = root.childNodes[i];
 	    	 for(j=0;j <childNode.childNodes.length;j++){
-	    		 var record = childNode.childNodes[j];			
+	    		 var record = childNode.childNodes[j];
 	    		 this.xData.push( record.childNodes[0].childNodes[0].nodeValue );
 				 this.yData.push(record.childNodes[1].childNodes[0].nodeValue);
 	    	 }
 		}
-		
+
 		var sum = getSum(this.yData);
 		for ( var int = 0; int < this.yData.length; int++) {
 			this.yData[int] =  Math.floor(( parseInt(this.yData[int]) / sum) * 360) ;
 		}
-		
+
 		var canvasElementDiv = document.getElementById(this.id+"piechartDiv");
 		var canvasElement = document.getElementById(this.id+"piechart");
 		if (canvasElement){
@@ -386,15 +386,15 @@ function PieChartPanel(id,width,height,parent,title,interval,url){
 		canvasElement.height = Math.floor(this.height * 75/100);
 		canvasElement.width = Math.floor(this.height * 75/100);
 		canvasElement.id = this.id+"piechart";
-		canvasElementDiv.appendChild(canvasElement);			
-		var pieChart = new PieChart(this.id+"piechart", 
+		canvasElementDiv.appendChild(canvasElement);
+		var pieChart = new PieChart(this.id+"piechart",
 				{
 					data: this.yData,
 					labels: this.xData
 				}
 			);
 		pieChart.draw();
-		
+
 		var ledgendDiv = document.getElementById(this.id+"ledgendDiv");
 		if (ledgendDiv){
 			canvasElementDiv.removeChild(ledgendDiv);
@@ -422,20 +422,20 @@ extend(TimerPanel, PieChartPanel);
 function TablePanel (id,width,height,parent,title,interval,url){
 		TimerPanel.call(this, id,width,height,parent,title,interval);
 		this.url = url;
-		var isTableCreated = -1; 
+		var isTableCreated = -1;
 
 		this.createContent = function () {
 			var tableDiv = document.createElement("div");
 			tableDiv.setAttribute('class' , 'tableDiv');
 			var tableObj = document.createElement("table");
 			tableObj.setAttribute("id",id+"_table");
-			tableObj.setAttribute('class' , 'tableContent');			
-			tableDiv.appendChild (tableObj);			 
+			tableObj.setAttribute('class' , 'tableContent');
+			tableDiv.appendChild (tableObj);
 			this.elementObj.appendChild (tableDiv);
 		};
-				
-	
-		
+
+
+
 		this.buildReport = function(req) {
 			var tableObject = document.getElementById(id+"_table");
 			for(k = tableObject.rows.length;k> 0; k--){
@@ -458,44 +458,27 @@ function TablePanel (id,width,height,parent,title,interval,url){
 			    		var element = record.childNodes[k];
 			    		var td = rowObject.insertCell(k);
 		  				if (element.childNodes.length > 0) {
-		  					td.innerHTML = element.childNodes[0].nodeValue;	
+		  					td.innerHTML = element.childNodes[0].nodeValue;
 		  				}
 		  				if ( j == 0) {
 		  					var headerCell = headerRow.insertCell(k);
 		  					headerCell.innerHTML = element.nodeName;
 		  				}
 		    		 }
-		    		 
+
 		    	 }
 		     }
-	    
+
 		}
-		
-		
+
+
 }
 
 extend(TimerPanel, TablePanel);
 
 
 
-//
-//PieChart
-//
-//CreativeCommons Attribution-ShareAlike
-//http://creativecommons.org/licenses/by-sa/2.5/
-//
-//2011 Elisabeth Robson
-//
-//expects an object with one or more of these:
-//includeLabels - boolean, determines whether to include the specified labels
-//	when drawing the chart. If false, the labels are stored in the pie chart
-//	but not drawn by default. You can draw a label for a segment with 
-//	the drawLabel method.
-//data - array of data items. Should be positive integer adding up to 360.
-//labels - array of (string) labels. Should have at least as many items as data.
-//colors - two D array of (string) colors. First is used to draw, second to draw
-//	a selected segment.
-//
+
 function PieChart(id, o) {
 	this.includeLabels = false;
 	if (o.includeLabels == undefined) {
@@ -544,7 +527,7 @@ PieChart.prototype = {
 		context.arc(centerX, centerY, radius, startingAngle, endingAngle, false);
 		context.closePath();
 
-		isSelected ? 
+		isSelected ?
 			context.fillStyle = self.colors[i][1] :
 			context.fillStyle = self.colors[i][0];
 
@@ -553,7 +536,7 @@ PieChart.prototype = {
 
 	},
 
-	
+
 
 	// helper functions
 	degreesToRadians: function(degrees) {

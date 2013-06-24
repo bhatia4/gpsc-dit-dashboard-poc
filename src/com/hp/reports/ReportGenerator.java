@@ -15,26 +15,28 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
 
+import com.hp.common.Constants;
 import com.hp.common.dao.DataManager;
+import com.hp.common.exception.ConfigException;
 import com.hp.common.exception.DAOException;
+import com.hp.common.xml.JDBCConfiguration;
+import com.hp.common.xml.ReportEntity;
 
 @Path("/reports")
 public class ReportGenerator {
 	
 	private static final Logger logger = Logger.getLogger(ReportGenerator.class);
-	
-	private static final String BASEURL = "http://localhost:7001/Report/ReportUI/reports/";
-	
 	private static final HashMap<String, String> baseQuery = new HashMap<String, String>();
 	
 	static {
-		baseQuery.put("pnoc" , "select rownum recordnum,keyid,buyer_region,smt,buyer_name,buyer_code,release_status,model_year,part_number,part_Description,reason_code,comments,product_line from pnoc" );
-		baseQuery.put("expiringcontract" , "select rownum recordnum,KEYID,SMT,CREATIVTY_TEAM_DSC,CNTRCT_NBR,CNTRCT_LI_NBR,LGL_BSNS_ENT_DSC,PART_NBR,PRT_DSC from expiring_contract" );
-		baseQuery.put("recentFiles" , "select rownum recordnum,buyer_region,smt,buyer_name,buyer_code,product_line from pnoc" );
 		baseQuery.put("fileList" , "select segment_name,plant,region,file_process_status FROM dashboard.control_table" );
 		baseQuery.put("fileListChart" , "select segment_name,count(*) as count FROM dashboard.control_table group by segment_name order by count(*) desc" );
 		baseQuery.put("fileStatusChart" , "select file_process_status as status , count(*) as count from control_table group by file_process_status order by count(*) desc" );
-		
+		try {
+			JDBCConfiguration.INSTANCE.loadConfiguration();
+		} catch (ConfigException e) {
+			logger.error(e.getMessage());
+		}
 	}
 	
 	public ReportGenerator() {
@@ -48,7 +50,7 @@ public class ReportGenerator {
 		buffer.append("<xml><reports>");
 		for (Iterator iterator = baseQuery.keySet().iterator(); iterator.hasNext();) {
 			String reportName = (String) iterator.next();
-			buffer.append("<report name='"+protectSpecialCharacters(reportName)+"'  url='"+ BASEURL  + reportName +"' />");
+			buffer.append("<report name='"+protectSpecialCharacters(reportName)+"'  url='"+ Constants.BASEURL  + reportName +"' />");
 		}
 		buffer.append("</reports></xml>");
 		return buffer.toString();
@@ -56,10 +58,9 @@ public class ReportGenerator {
 	
 	
 	@GET
-	@Path("/{reportName}")
+	@Path("/{reportId}")
 	@Produces(MediaType.TEXT_XML)
-	public String getReportCollections(@PathParam("reportName") String id,@Context UriInfo uri)  {
-		
+	public String getReportCollections(@PathParam("reportId") String id,@Context UriInfo uri)  {
 		 MultivaluedMap<String, String> queryParms = uri.getQueryParameters();
 		 String pageNumString = queryParms.getFirst("pageNum");
 		 int pageNum = -1;
@@ -69,20 +70,22 @@ public class ReportGenerator {
 			pageNum = Integer.parseInt(pageNumString) ;
 		 }
 		 
+		 int reportId = Integer.parseInt(id);
+		 String filterString = queryParms.getFirst("filter");
+		 
 		 DataManager dataManager = DataManager.INSTANCE;
+		 ReportEntity entity = JDBCConfiguration.INSTANCE.getConfigurationEntity().getReports().get(reportId);
 		try {
-			ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(id), System.currentTimeMillis()+"", false,-1);
-			String[] headers = dataManager.getHeaders(baseQuery.get(id), System.currentTimeMillis()+"", false);
+			ArrayList<String[]> dataList = dataManager.getData(reportId, System.currentTimeMillis()+"",filterString, false,-1);
+			String[] headers = dataManager.getHeaders(reportId, System.currentTimeMillis()+"", false);
 			ReportGenerator generator = new ReportGenerator();
 			int[] keyPosition = {0};
-			return generator.buildXmlString(headers,dataList, id,  keyPosition).toString();
+			return generator.buildXmlString(headers,dataList,entity.getName(),  keyPosition).toString();
 		} catch (DAOException e) {
 			logger.error(e);
 		}
 		return "";
 	}
-	
-	
 	
 	
 	
@@ -99,9 +102,9 @@ public class ReportGenerator {
 			for (int i = 0; i < data.length; i++) {
 				dataBuffer.append("<").append(headers[i]).append(">").append(removeNullEmpty(data[i])).append("</").append(headers[i]).append(">");
 			}
-			urlBuffer.append(BASEURL).append(entityName).append("/");
+			urlBuffer.append(Constants.BASEURL).append(entityName).append("/");
 			for (int i = 0; i < keyPosition.length; i++) {
-				urlBuffer.append(removeNullEmpty(data[i])).append("~$~");
+				urlBuffer.append(removeNullEmpty(data[i])).append(Constants.FILTER_SEPERATOR);
 			}
 			buffer.append("<").append(entityName).append(" url=\"").append(urlBuffer).append("\">");
 			buffer.append(dataBuffer.toString());
@@ -165,14 +168,12 @@ public class ReportGenerator {
 
 		public static void main(String args[]) {
 			DataManager dataManager = DataManager.INSTANCE;
-			String query = "expiringcontract";
+			String query = "fileListChart";
 			try {
-				ArrayList<String[]> dataList = dataManager.getData(baseQuery.get(query), System.currentTimeMillis()+"", false,-1);
-				String[] headers = dataManager.getHeaders(baseQuery.get(query), System.currentTimeMillis()+"", false);
+				ArrayList<String[]> dataList = dataManager.getData(2, System.currentTimeMillis()+"", "Plant~,~SZ~-~Region~,~SRU" ,false,-1);
+				String[] headers = dataManager.getHeaders(2, System.currentTimeMillis()+"", false);
 				ReportGenerator generator = new ReportGenerator();
 				int[] keyPosition = {0};
-				logger.info(generator.buildXmlString(headers,dataList,query,  keyPosition));
-				
 			} catch (DAOException e) {
 				logger.error(e);
 			}

@@ -1,9 +1,8 @@
 <html>
 	<head>
-		<link rel="stylesheet" href="barChart.css">
+		<link rel="stylesheet" href="css/barChart.css">
 	</head>
 	<body>
-<!--  <script src="js/barchart.js"></script>-->	
 
 	<script src="js/panel.js"></script>
 	
@@ -33,18 +32,18 @@
 			
 			//new barchart("panel_barChart",750,300,xData,yData,obj).create();
 			
-			var panelObject1 =new ChartPanel('chart1',750,300,obj,"File status Chart ",5,'http://localhost:7001/Report/ReportUI/reports/fileStatusChart');
+			var panelObject1 =new ChartPanel('chart1',750,300,obj,"File status Chart ",5,'http://localhost:7001/Report/ReportUI/reports/3');
 			panelObject1.create();
 
 			
-			var panelObject2 = new ChartPanel('chart2',750,300,obj,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/fileListChart');
+			var panelObject2 = new ChartPanel('chart2',750,300,obj,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
 			panelObject2.create();
 			
-			var panelObject3 = new PieChartPanel('pieChart2',750,300,obj,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/fileStatusChart');
+			var panelObject3 = new PieChartPanel('pieChart2',750,300,obj,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
 			panelObject3.create();
 
 			
-			var panelObject4 = new TablePanel('panel3',750,300,obj,"File Status",10,'http://localhost:7001/Report/ReportUI/reports/fileList');
+			var panelObject4 = new TablePanel('panel3',750,300,obj,"File Status",10,'http://localhost:7001/Report/ReportUI/reports/1');
 			panelObject4.create();
 
 	</script>

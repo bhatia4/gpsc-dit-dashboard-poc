@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -23,7 +24,13 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import com.hp.common.Constants;
+import com.hp.common.Utility;
 import com.hp.common.exception.DAOException;
+import com.hp.common.xml.ConnectionEntity;
+import com.hp.common.xml.FieldEntity;
+import com.hp.common.xml.JDBCConfiguration;
+import com.hp.common.xml.ReportEntity;
 
 /**
  * @author Manikandan Dhandapani
@@ -56,20 +63,20 @@ public enum DataManager {
 
 	final Hashtable<String, Connection> connections = new Hashtable<String, Connection>();
 
-	public void startTransaction(String keyName, String dataSourceName)
+	public void startTransaction(String keyName,  int dataSouceId)
 			throws DAOException {
-		startTransaction(keyName, dataSourceName,false);
+		startTransaction(keyName, dataSouceId,false);
 	}
 	
 	
-	public void startTransaction(String keyName, String dataSourceName,boolean autoCommit)
+	public void startTransaction(String keyName, int dataSouceId,boolean autoCommit)
 			throws DAOException {
 		try {
 			if (connections.get(keyName) != null) {
 				throw new DAOException("Transaction " + keyName
 						+ " Already Started");
 			}
-			Connection connection = getConnectionfromDataSource(dataSourceName);
+			Connection connection = getConnectionfromDataSource(dataSouceId);
 			connection.setAutoCommit(autoCommit);
 			connections.put(keyName, connection);
 			logger.info("Transaction Started.." + keyName);
@@ -81,21 +88,25 @@ public enum DataManager {
 	}
 
 	
-	public String[] getHeaders(String queryName,String transactionName,boolean inTransaction) throws DAOException{
+	public String[] getHeaders(int reportId,String transactionName,boolean inTransaction) throws DAOException{
 		String[] headers = null;
 		PreparedStatement statement  = null;
 		ResultSet  resultSet = null;
+		ReportEntity reportEntity = JDBCConfiguration.INSTANCE.getConfigurationEntity().getReports().get(reportId);
+		HashMap<String, FieldEntity> fields = JDBCConfiguration.INSTANCE.getConfigurationEntity().getFieldSets().get(reportEntity.getFieldSetId());
 		if(!inTransaction){
-			startTransaction(transactionName, DEFAULT_DATASOURCE,true);
+			startTransaction(transactionName, reportEntity.getConnectionId(),true);
 		}
 		try {
 			Connection connection = connections.get(transactionName);
-			statement = connection.prepareStatement(queryName);
+			statement = connection.prepareStatement(reportEntity.getBaseQuery());
 			resultSet = statement.executeQuery();
 			ResultSetMetaData md = resultSet.getMetaData() ;
 			headers = new String[md.getColumnCount()];
 			for( int i = 1; i <= md.getColumnCount(); i++ ) {
-				headers[i-1] =  md.getColumnLabel(i);
+				logger.info("Header Name Before Conversion.."+md.getColumnLabel(i));
+				headers[i-1] =  Utility.getNameFromColumnName(md.getColumnLabel(i), fields);
+				logger.info("Header Name After Conversion.."+headers[i-1]);
 			}
 		} catch (SQLException e) {
 			throw new DAOException(e);
@@ -113,16 +124,18 @@ public enum DataManager {
 		return headers;
 	}
 	
-	public ArrayList<String[]> getData( String queryName, String transactionName, boolean inTransaction, int pageNum ) throws DAOException{
+	public ArrayList<String[]> getData( int reportId, String transactionName, String filterString, boolean inTransaction, int pageNum ) throws DAOException{
 		ArrayList<String[]> dataList = new ArrayList<String[]>();
 		PreparedStatement statement  = null;
 		ResultSet  resultSet = null;
+		ReportEntity reportEntity = JDBCConfiguration.INSTANCE.getConfigurationEntity().getReports().get(reportId);
 		if(!inTransaction){
-			startTransaction(transactionName, DEFAULT_DATASOURCE,true);
+			startTransaction(transactionName, reportEntity.getConnectionId() ,true);
 		}
 		try {
-			Connection connection = connections.get(transactionName);
-			statement = connection.prepareStatement(buildPaginationQuery(queryName, pageNum, 20));
+			Connection connection = connections.get(transactionName);			
+			//buildPaginationQuery(reportId, pageNum, 20)
+			statement = connection.prepareStatement(buildQuery(reportEntity.getBaseQuery(),reportEntity,filterString));
 			resultSet = statement.executeQuery();
 			int columnCount = resultSet.getMetaData().getColumnCount();	
 			resultSet.setFetchSize(500);
@@ -148,6 +161,32 @@ public enum DataManager {
 		}
 		
 		return dataList;
+	}
+	
+	
+	public String buildQuery(String query,ReportEntity entity , String filterString) {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(query);
+		if (!Utility.isEmpty(filterString)) {
+			 HashMap<String, FieldEntity> fields = JDBCConfiguration.INSTANCE.getConfigurationEntity().getFieldSets().get(entity.getFieldSetId());
+			 String additionalFilter = Utility.convertFilterString(filterString, fields);
+			 if (Utility.isEmpty(entity.getWhereCondition())){
+				 buffer.append(Constants.WHERE_CONDITION_STRING).append(additionalFilter);
+			 }else{
+				 buffer.append(Constants.AND_STRING).append(additionalFilter);
+			 }
+		}
+		
+		 if (!Utility.isEmpty(entity.getGroupBy())){
+			 buffer.append(Constants.GROUP_BY_STRING).append(entity.getGroupBy());
+		 }
+		 
+		 if (!Utility.isEmpty(entity.getOrderBy())){
+			 buffer.append(Constants.ORDER_BY_STRING).append(entity.getOrderBy());
+		 }
+		
+		logger.debug("Query.."+buffer.toString());
+		return buffer.toString();
 	}
 
 	
@@ -222,15 +261,16 @@ public enum DataManager {
 		}
 	}
 
-	public Connection getConnectionfromDataSource(String dataSourceName)
+	public Connection getConnectionfromDataSource(int dataSouceId)
 			throws NamingException, SQLException {
 		Connection connection = null;
+		ConnectionEntity connectionEntity = JDBCConfiguration.INSTANCE.getConfigurationEntity().getConnections().get(dataSouceId);
 		Properties env = new Properties();
 		env.put(Context.INITIAL_CONTEXT_FACTORY,
 				"weblogic.jndi.WLInitialContextFactory");
-		env.put(Context.PROVIDER_URL, "t3://127.0.0.1:7001");
+		env.put(Context.PROVIDER_URL, connectionEntity.getUrl());
 		final Context ctx = new InitialContext(env);
-		DataSource dataSource = (DataSource) ctx.lookup(dataSourceName);
+		DataSource dataSource = (DataSource) ctx.lookup(connectionEntity.getDataSourceName());
 		connection = dataSource.getConnection();
 		return connection;
 	}

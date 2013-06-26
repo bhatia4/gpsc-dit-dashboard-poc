@@ -63,6 +63,47 @@ function initXHR(req) {
 	return req;
  }
 
+function buildDataFilter(id){
+	var comboElement = document.createElement("select");
+	comboElement.setAttribute("id",id);
+    var opt = document.createElement('option');
+    opt.value = '';    
+    opt.innerHTML = 'All';
+    comboElement.appendChild(opt);
+    
+    opt = document.createElement('option');
+    //opt.value = 'Updated_Date~grt~' + fromDateMinus(1,0,0);    
+    opt.value = 'Updated_Date~grt~curdate()-1'
+    opt.innerHTML = 'Last Day';
+    comboElement.appendChild(opt);
+    
+    opt = document.createElement('option');
+    opt.value = 'Updated_Date~grt~curdate()-30';    
+    opt.innerHTML = 'Last Month';
+    comboElement.appendChild(opt);
+    
+    opt = document.createElement('option');
+    opt.value = 'Updated_Date~grt~curdate()-365';    
+    opt.innerHTML = 'Last Year';
+    comboElement.appendChild(opt);
+    return comboElement;
+}
+
+
+function fromDateMinus(days,months,years){
+	var today = new Date();
+	var dd = parseInt(today.getDate()) - days;
+	var mm = parseInt(today.getMonth())+1 - months; //January is 0!
+	var yyyy = parseInt(today.getFullYear()) - years;
+	if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = mm+'/'+dd+'/'+yyyy;
+	return today;
+}
+
+
+
+
+
+
 function getTime() {
 	var today=new Date();
 	var h=today.getHours();
@@ -228,6 +269,8 @@ function panel(id,width,height,parent,title){
 
 		this.createContent = function () {};
 		this.addContent = function () {};
+		
+		
 
 		this.createFooter = function(innerStr) {
 			var footdiv = document.createElement("div");
@@ -241,6 +284,60 @@ function panel(id,width,height,parent,title){
 		}
 }
 
+function MainPanel (id,width,height,parent,title){
+	this.headerdiv = null;
+	this.mainDiv = null;
+	panel.call(this, id,width,height,parent,title);
+	
+	this.createContent = function () {
+		var headerdiv = document.createElement("div");
+		headerdiv.setAttribute('class' , 'header');
+		headerdiv.style.width = this.width + "px";			
+		headerdiv.style.height = (this.height * 5/100) + "px";
+		this.headerdiv = headerdiv;
+		this.elementObj.appendChild(headerdiv);
+		
+		this.mainDiv = document.createElement("div");
+		this.mainDiv.setAttribute('class' , 'MainDiv');
+		this.mainDiv.setAttribute('id' , 'MainDiv_1');
+		
+		this.mainDiv.style.width = this.width + "px";			
+		this.mainDiv.style.height = (this.height * 90/100) + "px";
+		this.elementObj.appendChild(this.mainDiv);
+		
+		
+		var panelObject1 =new ChartPanel('chart1',750,300,this.mainDiv,"File status Chart ",5,'http://localhost:7001/Report/ReportUI/reports/3');
+		panelObject1.create();
+
+		
+		var panelObject2 = new ChartPanel('chart2',750,300,this.mainDiv,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
+		panelObject2.create();
+		
+		var panelObject3 = new PieChartPanel('pieChart2',750,300,this.mainDiv,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
+		panelObject3.create();
+
+		
+		var panelObject4 = new TablePanel('panel3',750,300,this.mainDiv,"File Status",10,'http://localhost:7001/Report/ReportUI/reports/1');
+		panelObject4.create();
+	}
+	
+	
+	
+	
+	
+	this.createFooter = function(innerStr) {
+		var footdiv = document.createElement("div");
+		footdiv.setAttribute('class' , 'footer');
+		footdiv.style.width = this.width + "px";			;
+		footdiv.style.height = (this.height * 5/100) + "px";
+		createLabel(footdiv, innerStr, this.id+"_footLabel");
+		this.footerObj = footdiv;
+		this.elementObj.appendChild(footdiv)
+		return footdiv;
+	}
+}
+
+extend(panel, MainPanel);
 
 
 
@@ -257,6 +354,10 @@ function TimerPanel (id,width,height,parent,title,interval){
 			return setInterval(function() { return obj.refresh(); }, (this.interValTime * 1000));
 		}
 
+		this.addFilters = function () {
+			
+		}
+		
 		this.addContent = function () {
 			var imgObj = createImage(this.footerObj,this.id+"_ref_img", "img/refresh_button.png", "100%");
 			var self = this;
@@ -273,6 +374,9 @@ function TimerPanel (id,width,height,parent,title,interval){
 				 }
 
 			 },false);
+			 
+			 var dateFilterObj = buildDataFilter(this.id+'_dateFilter');
+			 this.footerObj.appendChild(dateFilterObj);
 		};
 
 
@@ -282,11 +386,28 @@ function TimerPanel (id,width,height,parent,title,interval){
 				this.getReport();
 			}
 		}
+		
+		this.buildFilterCondition = function (){
+			var filterCondition = '';
+			var dateFilterObj = document.getElementById(this.id+'_dateFilter');
+			if (dateFilterObj){
+				if (!(dateFilterObj.value=='')){
+					filterCondition = dateFilterObj.value;
+				}
+			}
+			
+			if (!(filterCondition == '')){
+				filterCondition = "?filter=" + filterCondition;
+			}
+			
+			return filterCondition;
+			
+		}
 
 		this.getReport = function(){
 			this.requestObject = initXHR(this.requestObject);
 			var obj = this;
-			var reportName = obj.url;
+			var reportName = obj.url + obj.buildFilterCondition();
 			this.requestObject.open("GET",reportName, true);
 			this.requestObject.onreadystatechange= function() {
 				if(obj.requestObject.readyState==4){
@@ -372,45 +493,19 @@ function PieChartPanel(id,width,height,parent,title,interval,url){
 	    	 }
 		}
 
-		var sum = getSum(this.yData);
 		for ( var int = 0; int < this.yData.length; int++) {
-			this.yData[int] =  Math.floor(( parseInt(this.yData[int]) / sum) * 360) ;
+			this.yData[int] = parseInt(this.yData[int]) ;
 		}
 
-		var canvasElementDiv = document.getElementById(this.id+"piechartDiv");
-		var canvasElement = document.getElementById(this.id+"piechart");
-		if (canvasElement){
-			canvasElementDiv.removeChild(canvasElement);
-		}
-		canvasElement = document.createElement('canvas');
-		canvasElement.height = Math.floor(this.height * 75/100);
-		canvasElement.width = Math.floor(this.height * 75/100);
-		canvasElement.id = this.id+"piechart";
-		canvasElementDiv.appendChild(canvasElement);
-		var pieChart = new PieChart(this.id+"piechart",
+		var pieChart = new PieChart(this.id,
 				{
 					data: this.yData,
-					labels: this.xData
+					labels: this.xData,
+					height:this.height,
+					width:this.width
 				}
-			);
-		pieChart.draw();
-
-		var ledgendDiv = document.getElementById(this.id+"ledgendDiv");
-		if (ledgendDiv){
-			canvasElementDiv.removeChild(ledgendDiv);
-		}
-		ledgendDiv = document.createElement("div");
-		ledgendDiv.id = this.id+"ledgendDiv";
-		ledgendDiv.style.height = Math.floor(this.height * 50/100);
-		ledgendDiv.style.width = Math.floor(this.width * 30/100);
-		ledgendDiv.setAttribute('class' , 'legend');
-		var ledgendStr = '<ul>';
-		for ( var j = 0; j < this.xData.length; j++) {
-			ledgendStr =  ledgendStr + '<li>'+this.xData[j]+'</li>';
-		}
-		 ledgendStr = ledgendStr + '</ul>';
-		ledgendDiv.innerHTML = ledgendStr;
-		canvasElementDiv.appendChild(ledgendDiv);
+		);
+		
 	}
 }
 
@@ -480,6 +575,7 @@ extend(TimerPanel, TablePanel);
 
 
 function PieChart(id, o) {
+	this.id = id;
 	this.includeLabels = false;
 	if (o.includeLabels == undefined) {
 		this.includeLabels = false;
@@ -487,21 +583,56 @@ function PieChart(id, o) {
 	else {
 		this.includeLabels = o.includeLabels;
 	}
-	this.data = o.data ? o.data : [30, 70, 45, 65, 20, 130]; // in degrees
+	this.actualData = o.data;
+	this.data = o.data ? this.toDegree(o.data) : [30, 70, 45, 65, 20, 130]; // in degrees
 	this.labels = o.labels ? o.labels : ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
 	this.colors = o.colors ? o.colors : [
-     	["#0092B9", "#1d8e04"], // green
-     	["#86AD00", "#9edd08"], // yellow green
-     	["#F2B705", "#faf406"], // yellow
-     	["#D97904", "#f2700f"], // orange
-     	["#BC3603", "#ea2507"], // red
-     	["#e2bcbd", "#9e2126"]  // purple
- 	];
-
-	this.canvas = document.getElementById(id);
+     	"#0092B9", "#1d8e04", // green
+     	"#86AD00", "#9edd08", // yellow green
+     	"#F2B705", "#faf406", // yellow
+     	"#D97904", "#f2700f", // orange
+     	"#BC3603", "#ea2507", // red
+     	"#e2bcbd", "#9e2126"  // purple
+ 	];	
+	this.height = o.height;
+	this.width = o.width;
+	this.create();
 }
 
 PieChart.prototype = {
+		
+	create: function() {
+		var canvasElementDiv = document.getElementById(this.id+"piechartDiv");
+		var canvasElement = document.getElementById(this.id+"piechart");
+		if (canvasElement){
+			canvasElementDiv.removeChild(canvasElement);
+		}
+		canvasElement = document.createElement('canvas');
+		canvasElement.height = Math.floor(this.height * 75/100);
+		canvasElement.width = Math.floor(this.height * 75/100);
+		canvasElement.id = this.id+"piechart";
+		canvasElementDiv.appendChild(canvasElement);
+		this.canvas = canvasElement;
+		
+		this.draw();
+		
+		var ledgendDiv = document.getElementById(this.id+"ledgendDiv");
+		if (ledgendDiv){
+			canvasElementDiv.removeChild(ledgendDiv);
+		}
+		ledgendDiv = document.createElement("div");
+		ledgendDiv.id = this.id+"ledgendDiv";
+		ledgendDiv.style.height = Math.floor(this.height * 75/100);
+		ledgendDiv.style.width = Math.floor(this.width * 30/100);
+		ledgendDiv.setAttribute('class' , 'legend');
+		var ledgendStr = '<ul>';
+		for ( var j = 0; j < this.labels.length; j++) {
+			ledgendStr =  ledgendStr + "<span style='background:"+this.colors[j]+";'></span><li>"+this.labels[j]+"&nbsp;&nbsp;&nbsp;&nbsp;" + this.actualData[j]+"</li>";
+		}
+		 ledgendStr = ledgendStr + '</ul>';
+		ledgendDiv.innerHTML = ledgendStr;
+		canvasElementDiv.appendChild(ledgendDiv);
+	},	
 
 	draw: function() {
 		var self = this;
@@ -519,6 +650,7 @@ PieChart.prototype = {
 		radius = Math.floor(canvas.width / 2);
 
 		var startingAngle = self.degreesToRadians(self.sumTo(self.data, i));
+		
 		var arcSize = self.degreesToRadians(size);
 		var endingAngle = startingAngle + arcSize;
 
@@ -527,15 +659,21 @@ PieChart.prototype = {
 		context.arc(centerX, centerY, radius, startingAngle, endingAngle, false);
 		context.closePath();
 
-		isSelected ?
-			context.fillStyle = self.colors[i][1] :
-			context.fillStyle = self.colors[i][0];
+			context.fillStyle = self.colors[i] ;
 
 		context.fill();
 		context.restore();
 
 	},
 
+	toDegree: function(data) {
+		var tmpData = [];
+		var sum = getSum(data);
+		for ( var int = 0; int < data.length; int++) {
+			tmpData.push(data[int] / sum * 360 );
+		}
+		return tmpData; 
+	},
 
 
 	// helper functions

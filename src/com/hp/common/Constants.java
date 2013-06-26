@@ -23,8 +23,14 @@ public interface Constants {
 	public static final String JDBC_FILE = "JDBCConfiguration.xml";
 	public static final String BASEURL = "http://localhost:7001/Report/ReportUI/reports/";
 	public static final String FILTER_SEPERATOR = "~-~";
-	public static final String EQUAL_FIELD_SEPERATOR = "~,~";
+	public static final String EQUAL_FIELD_SEPERATOR = "~eq~";
+	public static final String GREATER_FIELD_SEPERATOR = "~grt~";
+	public static final String LESS_FIELD_SEPERATOR = "~lst~";
+	
+	
 	public static final String EQUAL_FIELD = "=";
+	public static final String GREATER_FIELD = ">";
+	public static final String LESS_FIELD = "<";
 	
 	public static final String GROUP_BY = "groupBy";
 	public static final String ORDER_BY = "orderBy";
@@ -38,4 +44,15 @@ public interface Constants {
 	
 	public static final String SINGLE_QUOUTE = "'";
 	
+	
+	public static final String FILTER_CONDITION_ID = "filterId";
+	public static final String FILTERS = "filters";
+	public static final String FILTER = "filter";
+	public static final String VALUE = "value";
+	
+	public static final String PANELS = "panels";
+	public static final String HEIGHT = "height";
+	public static final String WIDTH = "width";
+	public static final String TYPE = "type";
+	public static final String REPORTID = "reportId";
 }

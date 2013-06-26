@@ -1,37 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Confgurations>
 	<reports>
-	<report id='1' 
-			name='fileList'
-			desc='List of All Segments and Status'
-			applicationId='1'
-			connectionId='1'
-			query='select segment_name,plant,region,file_process_status FROM dashboard.control_table'
-			fieldSetId= '1'/>
+		<report id='1' 
+				name='fileList'
+				desc='List of All Segments and Status'
+				applicationId='1'
+				connectionId='1'
+				filterId = '1'
+				query='select segment_name,plant,region,file_process_status FROM dashboard.control_table'
+				fieldSetId= '1'/>
+		
+		<report id='2' 
+				name='fileStatusChart'
+				desc='Segments per Status'
+				applicationId='1'
+				connectionId='1'
+				query='select file_process_status, count(*) as count from control_table'
+				groupBy='file_process_status'
+				orderBy='count(*) desc'
+				fieldSetId= '1'/>		
+		
+		<report id='3' 
+				name='fileStatusCount'
+				desc='Segments per Count'
+				applicationId='1'
+				connectionId='1'
+				query='select segment_name,count(*) as count FROM dashboard.control_table'
+				groupBy='segment_name'
+				orderBy='count(*) desc'
+				fieldSetId= '1'/>
+	</reports>
 	
-	<report id='2' 
-			name='fileStatusChart'
-			desc='Segments per Status'
-			applicationId='1'
-			connectionId='1'
-			query='select file_process_status, count(*) as count from control_table'
-			groupBy='file_process_status'
-			orderBy='count(*) desc'
-			fieldSetId= '1'/>		
 	
-	<report id='3' 
-			name='fileStatusCount'
-			desc='Segments per Count'
-			applicationId='1'
-			connectionId='1'
-			query='select segment_name,count(*) as count FROM dashboard.control_table'
-			groupBy='segment_name'
-			orderBy='count(*) desc'
-			fieldSetId= '1'/>		
+	<panels>
+		<panel id ="1"  name="File List" reportId="1" type="table" height="300" width="750" desc="List of All Segments and Status" />
+		<panel id ="2"  name="File Status Pie Chart" reportId="2" type="pieChart" height="300" width="750" desc="List of All Segments and Status" />
+		<panel id ="3"  name="File Status Bar Chart" reportId="2" type="chart" height="300" width="750" desc="List of All Segments and Status" />
+		<panel id ="4"  name="Segment Bar Chart" reportId="3" type="chart" height="300" width="750" desc="List of All Segments and Status" />
+		<panel id ="5"  name="Segment Pie Chart" reportId="3" type="pieChart" height="300" width="750" desc="List of All Segments and Status" />
+		
+	</panels>
 			
-			
-			
-	</reports>		
+	
+	<filters>
+		<filter id='1' name='dateFilter'/>
+		<filter id='2' name='segmentFilter'/>
+		<filter id='3' name='plantFilter'/>
+		<filter id='4' name='regionFilter'/>
+	</filters>
 	
 	<connections>
 		<connection id='1' dataSourceName='jdbc/dashboard' url='t3://127.0.0.1:7001' />
@@ -52,6 +68,7 @@
 			<field id='3' name='Region' columnName='region' dataType='java.lang.String' />
 			<field id='4' name='Status' columnName='file_process_status' dataType='java.lang.String' />
 			<field id='5' name='Count' columnName='count' dataType='java.lang.String' />
+			<field id='6' name='Updated_Date' columnName='updated_dt' dataType='java.util.Date' />
 		</fieldSet>
 	</fieldSets>
 </Confgurations>

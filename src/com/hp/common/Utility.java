@@ -22,14 +22,52 @@ public class Utility {
 				filterString.append(Constants.AND_STRING);
 			}
 			String filterElement = filterElements[i];
-			String[] elements = filterElement.split(Constants.EQUAL_FIELD_SEPERATOR);
-			filterString.append(fields.get(elements[0]).getColumnName()).append(Constants.EQUAL_FIELD).append(Constants.SINGLE_QUOUTE).append(elements[1]).append(Constants.SINGLE_QUOUTE);
+			substituteColumns(filterElement, filterString, fields);
 		}
 		
 		LOGGER.debug(filterString.toString());
 		return filterString.toString();
+	}
+	
+	
+	public static void substituteColumns(String filterElement,StringBuffer filterString,HashMap<String, FieldEntity> fields){
+		FieldEntity fieldEntity = null; 
+		String[] elements = null;
+		
+		if (filterElement.indexOf(Constants.EQUAL_FIELD_SEPERATOR) != -1){
+			elements = filterElement.split(Constants.EQUAL_FIELD_SEPERATOR);
+			fieldEntity = fields.get(elements[0]);
+			filterString.append(fieldEntity.getColumnName().trim()).append(Constants.EQUAL_FIELD); 
+		}else if (filterElement.indexOf(Constants.GREATER_FIELD_SEPERATOR) != -1){
+			
+			elements = filterElement.split(Constants.GREATER_FIELD_SEPERATOR);
+			fieldEntity = fields.get(elements[0]);
+			filterString.append(fieldEntity.getColumnName().trim()).append(Constants.GREATER_FIELD);
+		}else if (filterElement.indexOf(Constants.LESS_FIELD_SEPERATOR) != -1){
+			elements = filterElement.split(Constants.LESS_FIELD_SEPERATOR);
+			fieldEntity = fields.get(elements[0]);
+			filterString.append(fieldEntity.getColumnName().trim()).append(Constants.LESS_FIELD);
+		}
+		if (fieldEntity != null)
+			convertFilterValue(fieldEntity.getDataType(), elements[1], filterString);
 		
 	}
+	
+	
+	public static void convertFilterValue(String dataType,String elementValue,StringBuffer filterString){
+		if ("java.lang.String".equalsIgnoreCase(dataType)){
+			filterString.append(Constants.SINGLE_QUOUTE).append(elementValue).append(Constants.SINGLE_QUOUTE);
+			return;
+		}
+		if ("java.util.Date".equalsIgnoreCase(dataType) || "java.lang.Integer".equalsIgnoreCase(dataType)){
+			filterString.append(elementValue);
+			return;
+		}
+			
+	}
+	
+	
+	
 	
 	
 	

@@ -34,8 +34,10 @@ public enum JDBCConfiguration {
 		loadApplications(document);
 		loadConnections(document);
 		loadFieldSets(document);
+		loadFilters(document);
 		loadReports(document);
-
+		loadPanels(document);
+		
 			isLoaded = true;
 		}
 	}
@@ -49,8 +51,8 @@ public enum JDBCConfiguration {
 		int nodeLength = nodeList.getLength();
 		for (int i = 0; i < nodeLength; i++) {
 			Node node = nodeList.item(i);
-			ReportEntity entity = new ReportEntity();
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				ReportEntity entity = new ReportEntity();
 				Element eElement = (Element) node;
 				loadEntity(eElement, entity);
 				entity.setApplicationId(Integer.parseInt(eElement.getAttribute(Constants.APPLICATION_ID)));
@@ -60,8 +62,10 @@ public enum JDBCConfiguration {
 				entity.setWhereCondition(eElement.getAttribute(Constants.WHERE_CONDITION));
 				entity.setGroupBy(eElement.getAttribute(Constants.GROUP_BY));
 				entity.setOrderBy(eElement.getAttribute(Constants.ORDER_BY));
+				entity.setFilterId(eElement.getAttribute(Constants.FILTER_CONDITION_ID));
+				configurationEntity.getReports().put(entity.getId(), entity);
 			}
-			configurationEntity.getReports().put(entity.getId(), entity);
+			
 		}		
 	}
 	
@@ -70,12 +74,13 @@ public enum JDBCConfiguration {
 		int nodeLength = nodeList.getLength();
 		for (int i = 0; i < nodeLength; i++) {
 			Node node = nodeList.item(i);
-			ApplicationEntity entity = new ApplicationEntity();
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				ApplicationEntity entity = new ApplicationEntity();
 				Element eElement = (Element) node;
 				loadEntity(eElement, entity);
+				configurationEntity.getApplications().put(entity.getId(), entity);
 			}
-			configurationEntity.getApplications().put(entity.getId(), entity);
+			
 		}		
 	}
 	
@@ -84,14 +89,50 @@ public enum JDBCConfiguration {
 		int nodeLength = nodeList.getLength();
 		for (int i = 0; i < nodeLength; i++) {
 			Node node = nodeList.item(i);
-			ConnectionEntity entity = new ConnectionEntity();
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				ConnectionEntity entity = new ConnectionEntity();
 				Element eElement = (Element) node;
 				loadEntity(eElement, entity);
 				entity.setDataSourceName(eElement.getAttribute(Constants.DATASOURCE_NAME));
 				entity.setUrl(eElement.getAttribute(Constants.URL));
+				configurationEntity.getConnections().put(entity.getId(), entity);
 			}
-			configurationEntity.getConnections().put(entity.getId(), entity);
+			
+		}		
+	}
+	
+	
+	private void loadPanels(Document document) {
+		NodeList nodeList = document.getElementsByTagName(Constants.PANELS).item(0).getChildNodes();
+		int nodeLength = nodeList.getLength();
+		for (int i = 0; i < nodeLength; i++) {
+			Node node = nodeList.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				PanelEntity entity = new PanelEntity();
+				Element eElement = (Element) node;
+				loadEntity(eElement, entity);
+				entity.setType(eElement.getAttribute(Constants.TYPE));
+				entity.setHeight(eElement.getAttribute(Constants.HEIGHT));
+				entity.setWidth(eElement.getAttribute(Constants.WIDTH));
+				entity.setReportId(Integer.parseInt(eElement.getAttribute(Constants.REPORTID)));
+				configurationEntity.getPanels().put(entity.getId(), entity);
+			}
+			
+		}		
+	}
+	
+	private void loadFilters(Document document) {
+		NodeList nodeList = document.getElementsByTagName(Constants.FILTERS).item(0).getChildNodes();
+		int nodeLength = nodeList.getLength();
+		for (int i = 0; i < nodeLength; i++) {
+			Node node = nodeList.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				FilterEntity entity = new FilterEntity();
+				Element eElement = (Element) node;
+				loadEntity(eElement, entity);
+				configurationEntity.getFilters().put(entity.getId(), entity);
+			}
+			
 		}		
 	}
 	
@@ -131,7 +172,11 @@ public enum JDBCConfiguration {
 	
 	public static void main(String args[]) {
 		try {
-			JDBCConfiguration.INSTANCE.loadConfiguration();
+			JDBCConfiguration inst = JDBCConfiguration.INSTANCE;
+			inst.loadConfiguration();
+			ReportEntity entity = inst.getConfigurationEntity().getReports().get(1);
+			inst.getConfigurationEntity().getFilters().get(entity.getFilterId());
+			
 		} catch (ConfigException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

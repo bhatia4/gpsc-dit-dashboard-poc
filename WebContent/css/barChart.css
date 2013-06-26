@@ -8,7 +8,7 @@
 	background:#eee;
 	overflow:hidden;
 	border:1px solid #eee;
-	margin:2em 10;
+	margin:1em 1em 5 5;
 	border-radius:25px;
 	-moz-box-shadow:4px 4px 10px rgba(33,33,33,.8);
 	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,.8);
@@ -30,6 +30,7 @@
  	color: white;  
  	font-size:10pt;
 }
+
 
 .panel .footer{
  	font-family: Calibri;
@@ -160,9 +161,57 @@ Generic Styling, for Desktops/Laptops
 	padding:5px 5px;
 }
 
-.pieChart {
+.MainDiv{
 	font-weight:bold;
 	position:relative;
+	margin:0;
+	padding:0;
+	list-style:none;
+	background:#eee;
+	border:1px solid #eee;
+	margin:1em 1em 5 5;
+	border-radius:25px;
+	-moz-box-shadow:4px 4px 10px rgba(33,33,33,.8);
+	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,.8);
+}
+
+.footer{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+	height:2em;
+	bottom:0;
+	left:0;
+	background:#999;
+	border-radius:25px;
+	-moz-box-shadow:4px 4px 10px rgba(33,33,33,0);
+	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,0);
+}
+
+.header{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+ 	color: white;  
+	height:2em;
+	top:0;
+	left:0;
+	background:#999;
+	border-radius:25px;
+	-moz-box-shadow:4px 4px 10px rgba(33,33,33,0);
+	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,0);
+}
+
+.contentDiv{
+ 	font-family: Calibri;
+ 	font-weight:bold;
+	left:0;
+	background:#eee;
+}
+
+
+.pieChart {
+	font-weight:bold;
+	position:absolute;
 	margin:0;
 	padding: 0,30;
 	list-style:none;
@@ -173,8 +222,9 @@ Generic Styling, for Desktops/Laptops
 
 .pieChart .legend{
 	font-weight:bold;
-	position:relative;
+	position:absolute;
 	display:inline-block;
+	overflow-x: scroll;
 	margin:0;
 	padding: 0,30;
 	list-style:none;
@@ -183,5 +233,43 @@ Generic Styling, for Desktops/Laptops
 	margin:0em 0;	
 }
 
+.pieChart .legend span{
+	display: block;
+	float: left;
+	width:8px;
+	height: 8px;
+	margin: 5px 5px 0 0 ;
+	background: #FFFFFF;
+}
 
- 
+
+.pieChart .legend li{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	font-size: 14px;
+	color: #333333;
+}
+
+
+
+ .settingsPanel{
+ 	width:400;
+ 	position:absolute;
+ 	z-index:15;
+ 	display:none;
+	font-weight:bold;
+	margin:0;
+	padding:0;
+	background:#eee;
+	border:1px solid #eee;
+	margin:1em 1em 5 5;
+	border-radius:25px;
+	-moz-box-shadow:4px 4px 10px rgba(33,33,33,1);
+	-webkit-box-shadow:4px 4px 10px rgba(33,33,33,1);
+	list-style-type: none;
+}
+
+.settingsPanel li{
+	list-style-type: none;
+}

@@ -19,19 +19,20 @@ import com.hp.common.Constants;
 import com.hp.common.dao.DataManager;
 import com.hp.common.exception.ConfigException;
 import com.hp.common.exception.DAOException;
+import com.hp.common.xml.ConfigurationEntity;
 import com.hp.common.xml.JDBCConfiguration;
+import com.hp.common.xml.PanelEntity;
 import com.hp.common.xml.ReportEntity;
 
 @Path("/reports")
 public class ReportGenerator {
 	
 	private static final Logger logger = Logger.getLogger(ReportGenerator.class);
-	private static final HashMap<String, String> baseQuery = new HashMap<String, String>();
+	
+	private final ConfigurationEntity configurationEntity ; 
 	
 	static {
-		baseQuery.put("fileList" , "select segment_name,plant,region,file_process_status FROM dashboard.control_table" );
-		baseQuery.put("fileListChart" , "select segment_name,count(*) as count FROM dashboard.control_table group by segment_name order by count(*) desc" );
-		baseQuery.put("fileStatusChart" , "select file_process_status as status , count(*) as count from control_table group by file_process_status order by count(*) desc" );
+		
 		try {
 			JDBCConfiguration.INSTANCE.loadConfiguration();
 		} catch (ConfigException e) {
@@ -40,6 +41,7 @@ public class ReportGenerator {
 	}
 	
 	public ReportGenerator() {
+		configurationEntity = JDBCConfiguration.INSTANCE.getConfigurationEntity();
 		logger.info("Root Resource Instance Created");
 	}
 	
@@ -48,11 +50,30 @@ public class ReportGenerator {
 	public String getReports(@Context UriInfo uri)  {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("<xml><reports>");
-		for (Iterator iterator = baseQuery.keySet().iterator(); iterator.hasNext();) {
-			String reportName = (String) iterator.next();
-			buffer.append("<report name='"+protectSpecialCharacters(reportName)+"'  url='"+ Constants.BASEURL  + reportName +"' />");
+		HashMap<Integer, ReportEntity> reportEntities = configurationEntity.getReports(); 
+		for (Iterator<Integer> iterator = reportEntities.keySet().iterator(); iterator.hasNext();) {
+			Integer reportId = iterator.next();
+			ReportEntity entity = reportEntities.get(reportId);
+			buffer.append("<report id='"+ entity.getId()+"' name='"+protectSpecialCharacters(entity.getName())+"'  url='"+ Constants.BASEURL  + entity.getId() +"'  desc='"+entity.getDesc()+"'/>");
 		}
 		buffer.append("</reports></xml>");
+		return buffer.toString();
+	}
+	
+	
+	@GET
+	@Path("/panels")
+	@Produces(MediaType.TEXT_XML)
+	public String getPanels(@Context UriInfo uri)  {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("<xml><panels>");
+		HashMap<Integer, PanelEntity> panelEntities = configurationEntity.getPanels(); 
+		for (Iterator<Integer> iterator = panelEntities.keySet().iterator(); iterator.hasNext();) {
+			Integer reportId = iterator.next();
+			PanelEntity entity = panelEntities.get(reportId);
+			buffer.append("<panel id='"+ entity.getId()+"' name='"+protectSpecialCharacters(entity.getName())+"'  url='"+ Constants.BASEURL  + entity.getReportId() +"'  desc='"+entity.getDesc()+"' height='"+entity.getHeight()+"' width='"+entity.getWidth()+"' type='"+entity.getType()+"'/>");
+		}
+		buffer.append("</panels></xml>");
 		return buffer.toString();
 	}
 	

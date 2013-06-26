@@ -9,8 +9,15 @@ public class ReportEntity extends XmlEntity {
 	String groupBy;
 	String whereCondition;
 	String orderBy;
+	String filterId;
 	
 	
+	public String getFilterId() {
+		return filterId;
+	}
+	public void setFilterId(String filterId) {
+		this.filterId = filterId;
+	}
 	public String getGroupBy() {
 		return groupBy;
 	}

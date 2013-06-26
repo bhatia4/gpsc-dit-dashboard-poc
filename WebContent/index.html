@@ -31,6 +31,8 @@ function initXHR() {
 		
 	}
  }
+ 
+
   
 function getReports() {
 	initXHR();
@@ -83,7 +85,6 @@ function handleReport() {
 				for(k = tableObject.rows.length;k> 0; k--){
 					 tableObject.deleteRow(k-1);
 				}
-				
 				tableObject.deleteTHead();
 				
 				var header = tableObject.createTHead();

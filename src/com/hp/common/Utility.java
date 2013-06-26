@@ -80,7 +80,7 @@ public class Utility {
 				String name =  iterator.next();
 				FieldEntity entity = fields.get(name);
 				if (entity != null){
-					if (columnName.equals(entity.getColumnName())){
+					if (columnName.equalsIgnoreCase(entity.getColumnName())){
 						return (isEmpty(entity.getDisplayName())) ? entity.getName() : entity.getDisplayName() ;
 					}
 				}

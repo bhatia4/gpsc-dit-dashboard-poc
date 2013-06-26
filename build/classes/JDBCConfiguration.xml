@@ -29,6 +29,18 @@
 				groupBy='segment_name'
 				orderBy='count(*) desc'
 				fieldSetId= '1'/>
+				
+		<report id='4' 
+				name='controlTableDetailed'
+				desc='Control Table Detailed view'
+				applicationId='1'
+				connectionId='1'
+				query='select Plant , Region, SRC_FILE_NAME as FILE_NAME,SRC_REC_CNT as Source_Count , SEGMENT_NAME as Segment  , SEGMENT_FILE_NAME as SEGMENT_FILE_NAME,
+SEGMENT_REC_CNT as SEMENT_COUNT ,FILE_PROCESS_STATE as STATE , FILE_PROCESS_STATUS as Status , RECON_FLAG as FLAG , FILE_ARRIVED_DATE as ARRIVED_DATE,UPDATED_DT  ,
+DIFF_FILE_CNT , DIFF_INS_CNT,DIFF_UPD_CNT,DIFF_DEL_CNT,DIFF_ERR_CNT from control_table'
+				groupBy=''
+				orderBy=' updated_dt ,Region, Plant desc'
+				fieldSetId= '1'/>
 	</reports>
 	
 	

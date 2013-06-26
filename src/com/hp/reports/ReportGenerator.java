@@ -191,8 +191,8 @@ public class ReportGenerator {
 			DataManager dataManager = DataManager.INSTANCE;
 			String query = "fileListChart";
 			try {
-				ArrayList<String[]> dataList = dataManager.getData(2, System.currentTimeMillis()+"", "Plant~,~SZ~-~Region~,~SRU" ,false,-1);
-				String[] headers = dataManager.getHeaders(2, System.currentTimeMillis()+"", false);
+				ArrayList<String[]> dataList = dataManager.getData(4, System.currentTimeMillis()+"", "" ,false,-1);
+				String[] headers = dataManager.getHeaders(4, System.currentTimeMillis()+"", false);
 				ReportGenerator generator = new ReportGenerator();
 				int[] keyPosition = {0};
 			} catch (DAOException e) {

@@ -63,6 +63,62 @@ function initXHR(req) {
 	return req;
  }
 
+//buildTableFromResponse(this.requestObject,id+"_table");
+function loadPreviewData(url,id){
+	var reqObj = initXHR(this.requestObject);
+	var reportName = url;
+	reqObj.open("GET",reportName, true);
+	reqObj.onreadystatechange= function() {
+		if(reqObj.readyState==4){
+			   //response is OK
+			if(reqObj.status == 200){
+				buildTableFromResponse(reqObj,id);
+				reqObj.abort();
+			}
+		}
+
+	};
+	reqObj.send(null);
+}
+/**
+ * Bulid the Table Object from the REST Response.
+ * RequestObject - from CallBack Method
+ * id in which the table needs to be billed.
+ */
+function buildTableFromResponse(requestObject,id) {
+	var tableObject = document.getElementById(id);
+	for(k = tableObject.rows.length;k> 0; k--){
+		 tableObject.deleteRow(k-1);
+	}
+	tableObject.deleteTHead();
+	var header = tableObject.createTHead();
+	var headerRow;
+	var response=requestObject.responseXML;
+	var root=response.documentElement;
+	for(i=0;i <root.childNodes.length;i++){
+    	 var childNode = root.childNodes[i];
+    	 for(j=0;j <childNode.childNodes.length;j++){
+    		 var record = childNode.childNodes[j];
+    		 var rowObject = tableObject.insertRow(j);
+    		 if (j == 0) {
+    			headerRow=header.insertRow(0);
+    		 }
+    		 for(k=0;k <record.childNodes.length;k++){
+	    		var element = record.childNodes[k];
+	    		var td = rowObject.insertCell(k);
+  				if (element.childNodes.length > 0) {
+  					td.innerHTML = element.childNodes[0].nodeValue;
+  				}
+  				if ( j == 0) {
+  					var headerCell = headerRow.insertCell(k);
+  					headerCell.innerHTML = element.nodeName;
+  				}
+    		 }
+
+    	 }
+     }
+}
+
 function buildDataFilter(id){
 	var comboElement = document.createElement("select");
 	comboElement.setAttribute("id",id);
@@ -140,6 +196,105 @@ function checkTime(i)
 	}
 return i;
 }
+
+
+
+var visualObjects = {};
+
+var hash = function(obj){
+	return obj.id;
+}
+
+function visualObject(id,name,url,type,height,width,desc){
+	this.id = id;
+	this.url = url;
+	this.type = type;
+	this.width = width;
+	this.height = height;
+	this.desc = desc;
+	this.name = name;
+}
+
+function toggleDiv(id,displayProperty){
+	var obj = document.getElementById(id);
+	if (obj.style.display == 'none' || obj.style.display =='' ) {
+		obj.style.display = 'inline'
+	}else{
+		obj.style.display = 'none';
+	}
+}
+
+function getPanels(){
+	var reqObj = initXHR(this.requestObject);
+	var reportName = window.location.protocol + "//" + window.location.host +"/Report/ReportUI/reports/panels";
+	reqObj.open("GET",reportName, true);
+	reqObj.onreadystatechange= function() {
+		if(reqObj.readyState==4){
+			   //response is OK
+			if(reqObj.status == 200){
+				buildPanel(reqObj);
+				reqObj.abort();
+			}
+		}
+
+	};
+	reqObj.send(null);
+}
+
+
+
+
+function buildPanel(reqObj) {
+	var str="";
+	var response=reqObj.responseXML;
+	var root=response.documentElement;
+	for(i=0;i <root.childNodes.length;i++){
+    	 var childNode = root.childNodes[i];
+    	 var ulElement = document.createElement("ul");
+    	 for(j=0;j <childNode.childNodes.length;j++){
+    		 var report = childNode.childNodes[j];
+    		 var name = report.getAttribute("name");
+    		 var url = report.getAttribute("url");
+    		 var id = report.getAttribute("id");
+    		 var desc = report.getAttribute("desc");
+    		 var height = report.getAttribute("height");
+    		 var width = report.getAttribute("width");
+    		 var type = report.getAttribute("type");
+    		 var liElement = document.createElement("li");
+    		 var visualInst = new visualObject(id,name,url,type,width,height,desc);
+    		 visualObjects[hash(visualInst)] = visualInst;
+    		 liElement.innerHTML = "<input type='checkbox' name=checkBox_"+id+"  value='"+visualInst.id+"' onclick='javaScript:addorRemovePanels(this.value)' >"+name;
+    		 ulElement.appendChild(liElement);
+    	 }
+    	 
+    	 
+	}
+	document.getElementById("settingsPanel").appendChild(ulElement);
+	
+}
+
+function addorRemovePanels(checkBoxValue) {
+	var objs = visualObjects[checkBoxValue];
+	var obj = document.body;
+	var panelObj;
+	if (objs) {
+		panelObj = document.getElementById('panel_'+objs.id);
+		if (panelObj){
+			obj.removeChild(panelObj);
+			return;
+		}				
+		if (objs.type == "chart") {
+			panelObj = new ChartPanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,5,objs.url);
+		}else if (objs.type == "pieChart") {
+			panelObj = new PieChartPanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,5,objs.url);
+		}else if (objs.type == "table") {
+			panelObj = new TablePanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,10,objs.url);
+		}
+		panelObj.create();
+		panelObj.refresh();
+	}
+}
+
 
 
 function barchart(id,height,width,xValues,values,parent){
@@ -243,6 +398,7 @@ function panel(id,width,height,parent,title){
 		this.title = title;
 		this.elementObj = null;
 		this.footerObj = null;
+		this.detailedViewId = 4;
 		var className = 'panel'
 
 
@@ -284,60 +440,7 @@ function panel(id,width,height,parent,title){
 		}
 }
 
-function MainPanel (id,width,height,parent,title){
-	this.headerdiv = null;
-	this.mainDiv = null;
-	panel.call(this, id,width,height,parent,title);
-	
-	this.createContent = function () {
-		var headerdiv = document.createElement("div");
-		headerdiv.setAttribute('class' , 'header');
-		headerdiv.style.width = this.width + "px";			
-		headerdiv.style.height = (this.height * 5/100) + "px";
-		this.headerdiv = headerdiv;
-		this.elementObj.appendChild(headerdiv);
-		
-		this.mainDiv = document.createElement("div");
-		this.mainDiv.setAttribute('class' , 'MainDiv');
-		this.mainDiv.setAttribute('id' , 'MainDiv_1');
-		
-		this.mainDiv.style.width = this.width + "px";			
-		this.mainDiv.style.height = (this.height * 90/100) + "px";
-		this.elementObj.appendChild(this.mainDiv);
-		
-		
-		var panelObject1 =new ChartPanel('chart1',750,300,this.mainDiv,"File status Chart ",5,'http://localhost:7001/Report/ReportUI/reports/3');
-		panelObject1.create();
 
-		
-		var panelObject2 = new ChartPanel('chart2',750,300,this.mainDiv,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
-		panelObject2.create();
-		
-		var panelObject3 = new PieChartPanel('pieChart2',750,300,this.mainDiv,"Segment Chart",5,'http://localhost:7001/Report/ReportUI/reports/2');
-		panelObject3.create();
-
-		
-		var panelObject4 = new TablePanel('panel3',750,300,this.mainDiv,"File Status",10,'http://localhost:7001/Report/ReportUI/reports/1');
-		panelObject4.create();
-	}
-	
-	
-	
-	
-	
-	this.createFooter = function(innerStr) {
-		var footdiv = document.createElement("div");
-		footdiv.setAttribute('class' , 'footer');
-		footdiv.style.width = this.width + "px";			;
-		footdiv.style.height = (this.height * 5/100) + "px";
-		createLabel(footdiv, innerStr, this.id+"_footLabel");
-		this.footerObj = footdiv;
-		this.elementObj.appendChild(footdiv)
-		return footdiv;
-	}
-}
-
-extend(panel, MainPanel);
 
 
 
@@ -355,7 +458,6 @@ function TimerPanel (id,width,height,parent,title,interval){
 		}
 
 		this.addFilters = function () {
-			
 		}
 		
 		this.addContent = function () {
@@ -375,11 +477,15 @@ function TimerPanel (id,width,height,parent,title,interval){
 
 			 },false);
 			 
+			 
+			 
 			 var dateFilterObj = buildDataFilter(this.id+'_dateFilter');
+			 this.detailvedView();
 			 this.footerObj.appendChild(dateFilterObj);
 		};
-
-
+		
+		
+		
 		this.refresh = function(){
 			document.getElementById( this.id+"_footLabel").innerText = this.title + '.. Last Refresh Updated..' +getTime();
 			if (this.url){
@@ -395,7 +501,6 @@ function TimerPanel (id,width,height,parent,title,interval){
 					filterCondition = dateFilterObj.value;
 				}
 			}
-			
 			if (!(filterCondition == '')){
 				filterCondition = "?filter=" + filterCondition;
 			}
@@ -404,6 +509,25 @@ function TimerPanel (id,width,height,parent,title,interval){
 			
 		}
 
+		this.detailvedView = function () {
+			var spanObj = document.createElement("span");
+			var self = this;
+			var filterCondition = self.buildFilterCondition();
+			var url = 'popupView.html';
+			if (filterCondition == ''){
+				url = url + '?reportId='+this.detailedViewId;
+			}else{
+				url = url+filterCondition + '&reportId='+this.detailedViewId;
+			}
+			spanObj.innerHTML = 'DetailedView';
+			spanObj.addEventListener("click", function(e) {
+				window.open(url,'_popupReportView','menubar=0,location=0,status=0,toolbar=0',true);
+			 },false);
+			this.footerObj.appendChild(spanObj);
+		}
+
+
+		
 		this.getReport = function(){
 			this.requestObject = initXHR(this.requestObject);
 			var obj = this;
@@ -417,7 +541,6 @@ function TimerPanel (id,width,height,parent,title,interval){
 						obj.requestObject.abort();
 					}
 				}
-
 			};
 			this.requestObject.send(null);
 		}
@@ -531,39 +654,8 @@ function TablePanel (id,width,height,parent,title,interval,url){
 
 
 
-		this.buildReport = function(req) {
-			var tableObject = document.getElementById(id+"_table");
-			for(k = tableObject.rows.length;k> 0; k--){
-				 tableObject.deleteRow(k-1);
-			}
-			tableObject.deleteTHead();
-			var header = tableObject.createTHead();
-			var headerRow;
-			var response=this.requestObject.responseXML;
-			var root=response.documentElement;
-			for(i=0;i <root.childNodes.length;i++){
-		    	 var childNode = root.childNodes[i];
-		    	 for(j=0;j <childNode.childNodes.length;j++){
-		    		 var record = childNode.childNodes[j];
-		    		 var rowObject = tableObject.insertRow(j);
-		    		 if (j == 0) {
-		    			headerRow=header.insertRow(0);
-		    		 }
-		    		 for(k=0;k <record.childNodes.length;k++){
-			    		var element = record.childNodes[k];
-			    		var td = rowObject.insertCell(k);
-		  				if (element.childNodes.length > 0) {
-		  					td.innerHTML = element.childNodes[0].nodeValue;
-		  				}
-		  				if ( j == 0) {
-		  					var headerCell = headerRow.insertCell(k);
-		  					headerCell.innerHTML = element.nodeName;
-		  				}
-		    		 }
-
-		    	 }
-		     }
-
+		this.buildReport = function() {
+			buildTableFromResponse(this.requestObject,id+"_table");
 		}
 
 

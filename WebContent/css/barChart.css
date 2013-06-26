@@ -273,3 +273,48 @@ Generic Styling, for Desktops/Laptops
 .settingsPanel li{
 	list-style-type: none;
 }
+
+
+.reportTableView
+ {
+           overflow-x: scroll;
+           overflow-y: scroll;
+            margin: 0 auto;
+            font-family: Calibri;
+            padding: 0.5em 1em 1em 1em;
+            /* rounded corners */
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+
+            /* add box shadows */
+            -moz-box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+            -webkit-box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+ }
+
+
+
+/* 
+Generic Styling, for Desktops/Laptops 
+*/
+.reportTableView table { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+/* Zebra striping */
+.reportTableView table tbody tr:nth-of-type(odd) { 
+  background: #eee; 
+}
+
+.reportTableView thead { 
+  background: #333; 
+  color: white; 
+  font-weight: bold; 
+}
+
+.reportTableView td, th { 
+  padding: 6px; 
+  border: 1px solid #ccc; 
+  text-align: left; 
+}

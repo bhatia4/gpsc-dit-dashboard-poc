@@ -5,7 +5,7 @@
 	<body>
 	<script src="js/panel.js"></script>
 		<div id='headerDiv'style="height:5%;width:100%" class='header'>DashBoard
-			<div style="display:inline;text-align: right;"> <a href="javaScript:toggleDiv('settingsPanel')"> settings </a> </div>
+			<div style="position:absolute;display:inline;text-align:right;"> <a href="javaScript:toggleDiv('settingsPanel')"> settings </a> </div>
 		</div>
 		<!-- 	<input type='checkbox' name='1' checked value='chart1~chart~File Status Chart~3' onclick='javaScript:addorRemovePanels(this.value)' > Report UI1 <br> -->
 		<div id='settingsPanel' class='settingsPanel'>
@@ -13,102 +13,6 @@
 </body>
 
 <script language="javascript" type="text/javascript" >
-
-
-		var visualObjects = {};
-		
-		var hash = function(obj){
-			return obj.id;
-		}
-		
-		function visualObject(id,name,url,type,height,width,desc){
-			this.id = id;
-			this.url = url;
-			this.type = type;
-			this.width = width;
-			this.height = height;
-			this.desc = desc;
-			this.name = name;
-		}
-
-		function toggleDiv(id,displayProperty){
-			var obj = document.getElementById(id);
-			if (obj.style.display == 'none' || obj.style.display =='' ) {
-				obj.style.display = 'inline'
-			}else{
-				obj.style.display = 'none';
-			}
-		}
-		getPanels();
-		function getPanels(){
-			var reqObj = initXHR(this.requestObject);
-			var reportName = window.location.protocol + "//" + window.location.host +"/Report/ReportUI/reports/panels";
-			reqObj.open("GET",reportName, true);
-			reqObj.onreadystatechange= function() {
-				if(reqObj.readyState==4){
-					   //response is OK
-					if(reqObj.status == 200){
-						buildPanel(reqObj);
-						reqObj.abort();
-					}
-				}
-
-			};
-			reqObj.send(null);
-		}
-		
-		function buildPanel(reqObj) {
-			var str="";
-			var response=reqObj.responseXML;
-			var root=response.documentElement;
-			for(i=0;i <root.childNodes.length;i++){
-		    	 var childNode = root.childNodes[i];
-		    	 var ulElement = document.createElement("ul");
-		    	 for(j=0;j <childNode.childNodes.length;j++){
-		    		 var report = childNode.childNodes[j];
-		    		 var name = report.getAttribute("name");
-		    		 var url = report.getAttribute("url");
-		    		 var id = report.getAttribute("id");
-		    		 var desc = report.getAttribute("desc");
-		    		 var height = report.getAttribute("height");
-		    		 var width = report.getAttribute("width");
-		    		 var type = report.getAttribute("type");
-		    		 var liElement = document.createElement("li");
-		    		 var visualInst = new visualObject(id,name,url,type,width,height,desc);
-		    		 visualObjects[hash(visualInst)] = visualInst;
-		    		 liElement.innerHTML = "<input type='checkbox' name=checkBox_"+id+"  value='"+visualInst.id+"' onclick='javaScript:addorRemovePanels(this.value)' >"+name;
-		    		 ulElement.appendChild(liElement);
-		    	 }
-		    	 
-		    	 
-			}
-			document.getElementById("settingsPanel").appendChild(ulElement);
-			
-		}
-		
-		function addorRemovePanels(checkBoxValue) {
-			var objs = visualObjects[checkBoxValue];
-			var obj = document.body;
-			var panelObj;
-			if (objs) {
-				panelObj = document.getElementById('panel_'+objs.id);
-				if (panelObj){
-					obj.removeChild(panelObj);
-					return;
-				}				
-				if (objs.type == "chart") {
-					panelObj = new ChartPanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,5,objs.url);
-				}else if (objs.type == "pieChart") {
-					panelObj = new PieChartPanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,5,objs.url);
-				}else if (objs.type == "table") {
-					panelObj = new TablePanel('panel_'+objs.id,objs.height,objs.width,obj,objs.name,10,objs.url);
-				}
-				panelObj.create();
-			}
-		}
-		
-		
-	
-		
-	</script>
+getPanels();		
+</script>
 </html>
